@@ -28,6 +28,7 @@ jobs:
         if: startsWith(github.event.ref, 'refs/tags/v')
         env:
           INPUT_REF: ${{ github.event.ref }}
+        run: echo "${{ github.event.ref }}"
 
       - name: Extract Tag
         id: tag
