@@ -19,13 +19,15 @@ jobs:
 
     steps:
       - name: Show Me
-        if: github.event.ref_type == 'tag'
+#        if: github.event.ref_type == 'tag'
         env:
           GITHUB_CONTEXT: ${{ toJson(github) }}
-        run: echo "$GITHUB_CONTEXT"
+        run: |
+          echo "$GITHUB_CONTEXT"
+          echo "${{ github.event.ref_type }}"
 
       - name: event tag
-        if: startsWith(github.event.ref, 'refs/tags/v')
+#        if: startsWith(github.event.ref, 'refs/tags/v')
         env:
           INPUT_REF: ${{ github.event.ref }}
         run: echo "${{ github.event.ref }}"
