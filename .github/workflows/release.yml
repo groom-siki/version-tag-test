@@ -31,13 +31,19 @@ jobs:
           CUR_MAJOR_NUMBER=`git describe --tags | sed 's/v//g' | awk -F '.' '{ print $1 }'`
           CUR_MINOR_NUMBER=`git describe --tags | sed 's/v//g' | awk -F '.' '{ print $2 }'`
           CUR_PATCH_NUMBER=`git describe --tags | sed 's/v//g' | awk -F '.' '{ print $3 }'`
-          echo "NEXT_MAJOR_NUMBER=$CUR_MAJOR_NUMBER" >> $GITHUB_ENV
-          echo "NEXT_MINOR_NUMBER=$CUR_MINOR_NUMBER" >> $GITHUB_ENV
-          echo "NEXT_PATCH_NUMBER=$CUR_PATCH_NUMBER" >> $GITHUB_ENV
+          echo $CUR_MAJOR_NUMBER
+          echo $CUR_MINOR_NUMBER
+          echo $CUR_PATCH_NUMBER
+          echo NEXT_MAJOR_NUMBER=$CUR_MAJOR_NUMBER >> $GITHUB_ENV
+          echo NEXT_MINOR_NUMBER=$CUR_MINOR_NUMBER >> $GITHUB_ENV
+          echo NEXT_PATCH_NUMBER=$CUR_PATCH_NUMBER >> $GITHUB_ENV
+#          echo "NEXT_MAJOR_NUMBER=$CUR_MAJOR_NUMBER" >> $GITHUB_ENV
+#          echo "NEXT_MINOR_NUMBER=$CUR_MINOR_NUMBER" >> $GITHUB_ENV
+#          echo "NEXT_PATCH_NUMBER=$CUR_PATCH_NUMBER" >> $GITHUB_ENV
           
       - name: cur major
         run: echo ${{ env.NEXT_MAJOR_NUMBER }}
-        
+
       - name: cur minor
         run: echo ${{ env.NEXT_MINOR_NUMBER }}
         
