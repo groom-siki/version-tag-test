@@ -25,6 +25,11 @@ jobs:
       - name: Check Release Type
         run: |
           echo "release tag version type: ${{ inputs.version }}"
+
+      - name: Current Tag Version
+        run: |
+          echo "RELEASE_VERSION=${GITHUB_REF#refs/*/v}" >> $GITHUB_ENV
+          echo ${{ env.RELEASE_VERSION }}
           
       - name: Setting Current Tag Version
         run: |
