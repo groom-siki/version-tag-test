@@ -16,11 +16,19 @@ on:
 jobs:
   release:
     runs-on: ubuntu-latest
-    if: startsWith(github.event.ref, 'refs/tags/v')
-    env:
-      INPUT_REF: ${{ github.event.ref }}
 
     steps:
+      - name: Show Me
+        if: github.event.ref_type == 'tag'
+         env:
+           GITHUB_CONTEXT: ${{ toJson(github) }}
+         run: echo "$GITHUB_CONTEXT"
+
+      - name: event tag
+        if: startsWith(github.event.ref, 'refs/tags/v')
+          env:
+            INPUT_REF: ${{ github.event.ref }}
+
       - name: Extract Tag
         id: tag
         run: echo "IMAGE_TAG=${INPUT_REF/refs\/tags\//}" >> $GITHUB_ENV
