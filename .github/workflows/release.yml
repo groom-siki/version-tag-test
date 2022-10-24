@@ -28,8 +28,7 @@ jobs:
 
       - name: Current Tag Version
         run: |
-          echo "RELEASE_VERSION=${GITHUB_REF#refs/*/v}" >> $GITHUB_ENV
-          echo ${{ env.RELEASE_VERSION }}
+          echo ${{ github.ref }}
           
       - name: Setting Current Tag Version
         run: |
