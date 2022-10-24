@@ -15,10 +15,16 @@ on:
 
 jobs:
   release:
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && startsWith(github.event.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
+    env:
+      INPUT_REF: ${{ github.event.ref }}
 
     steps:
+      - name: Extract Tag
+        id: tag
+        run: echo "IMAGE_TAG=${INPUT_REF/refs\/tags\//}" >> $GITHUB_ENV
+
       - name: Checkout
         uses: actions/checkout@v2
         
@@ -28,7 +34,7 @@ jobs:
 
       - name: Current Tag Version
         run: |
-          echo ${{ github.ref }}
+          echo ${{ env.IMAGE_TAG }}
           
       - name: Setting Current Tag Version
         run: |
