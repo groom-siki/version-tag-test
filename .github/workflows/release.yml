@@ -52,9 +52,16 @@ jobs:
           echo "image tag1: ${{ env.IMAGE_TAG }}"
           echo image tag2: $IMAGE_TAG
 
-      - name: Extract Tag
+      - name: GITHUB_REF에서 tag 추출
         id: tag
         run: echo "IMAGE_TAG=${INPUT_REF/refs\/tags\//}" >> $GITHUB_ENV
+
+      - name: 로그에서 tag 추출
+        id: log_tag
+        run: |
+          echo `git log --oneline --decorate | grep origin/production | awk '{ printf($3) }' | sed 's/,//g' | sed 's/v//g'`
+          LOG_TAG=`git log --oneline --decorate | grep origin/production | awk '{ printf($3) }' | sed 's/,//g' | sed 's/v//g'`
+          echo $LOG_TAG
 
       - name: Checkout
         uses: actions/checkout@v2
