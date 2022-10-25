@@ -52,7 +52,9 @@ jobs:
           echo `git log --decorate | grep '(tag: ' | awk '{ printf($3) }' | awk -F ')' '{ printf($1) }'`
           LOG_TAG=`git log --decorate | grep '(tag: ' | awk '{ printf($3) }' | awk -F ')' '{ printf($1) }'`
           echo $LOG_TAG
-          run: echo "GIT_TAG=`echo $(git describe --tags --abbrev=0)`" >> $GITHUB_ENV 
+          run: |
+            git fetch --tags
+            echo "GIT_TAG=`echo $(git describe --tags --abbrev=0)`" >> $GITHUB_ENV 
 
       - name: Current Tag Version
         run: |
