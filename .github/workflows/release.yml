@@ -11,6 +11,10 @@ on:
         options:
           - minor
           - patch
+      production-branch:
+        description: 프로덕션 Branch
+        required: true
+        default: 'production'
 
 jobs:
   init:
@@ -22,9 +26,7 @@ jobs:
       - name: GITHUB ACTIONS 체크아웃
         uses: actions/checkout@v2
         with:
-          repository: actions/checkout
-          ref: production
-
+          ref: ${{ github.event.inputs.production-branch }}
 
       - name: TAG 버전 업 타입 확인
         run: |
@@ -101,8 +103,7 @@ jobs:
       - name: GITHUB ACTIONS 체크아웃
         uses: actions/checkout@v2
         with:
-          repository: actions/checkout
-          ref: production
+          ref: ${{ github.event.inputs.production-branch }}
 
       - name: 새 태그 및 저자 설정
         run: |
