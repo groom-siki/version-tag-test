@@ -92,6 +92,7 @@ jobs:
       NEXT_PATCH: ${{ needs.calculate.outputs.next_patch }}
       TAG: ${{ needs.calculate.outputs.tag }}
 
+    steps:
       - name: 다음 버전 COMMIT
         run: |
           git config --global user.name 'croquiscom-pim'
