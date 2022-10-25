@@ -70,7 +70,7 @@ jobs:
           LOG_TAG=`git log --decorate | grep '(tag: ' | awk '{ printf($3) }' | awk -F ')' '{ printf($1) }'`
           echo $LOG_TAG
           /usr/bin/git log
-          /usr/bin/git --decorate
+          /usr/bin/git log --decorate
 
       - name: Current Tag Version
         run: |
