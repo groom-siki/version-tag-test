@@ -98,8 +98,8 @@ jobs:
         run: |
           git config --global user.name 'croquiscom-pim'
           git config --global user.email 'admin@croquis.com'
-          AUTHOR=${{ github.event.sender.login }}<${{ github.event.sender.id }}+${{ github.event.sender.login }}@users.noreply.github.com>
-          GIT_NEXT_TAG=v${{ env.NEXT_MAJOR }}.${{ env.NEXT_MINOR }}.${{ env.NEXT_PATCH }}
+          AUTHOR="${{ github.event.sender.login }}<${{ github.event.sender.id }}+${{ github.event.sender.login }}@users.noreply.github.com>"
+          GIT_NEXT_TAG="v${{ env.NEXT_MAJOR }}.${{ env.NEXT_MINOR }}.${{ env.NEXT_PATCH }}"
           echo "GIT_NEXT_TAG=$GIT_NEXT_TAG" >> $GITHUB_ENV
           git commit -m $GIT_NEXT_TAG --author $AUTHOR
           git push
