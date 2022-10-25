@@ -42,7 +42,7 @@ jobs:
     env:
       TAG: ${{ needs.init.outputs.current_tag }}
 
-      steps:
+    steps:
       - name: MAJOR/MINOR/PATCH 버전 값 추출
         run: |
           CUR_MAJOR_NUMBER=`${{ env.TAG }} | awk -F '.' '{ print $1 }'`
