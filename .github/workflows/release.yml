@@ -49,14 +49,14 @@ jobs:
       - name: 로그에서 tag 추출
         id: log_tag
         run: |
-          echo `git log --decorate | grep '(tag: ' | awk '{ printf($3) }' | awk -F ')' '{ printf($1) }'`
-          LOG_TAG=`git log --decorate | grep '(tag: ' | awk '{ printf($3) }' | awk -F ')' '{ printf($1) }'`
-          echo $LOG_TAG
-          run: |
-            git fetch --tags
-            git log --decorate
-            echo "GIT_TAG=`echo $(git describe --tags --always --abbrev=0)`" >> $GITHUB_ENV
-            echo ${{ env.GIT_TAG }}
+#          echo `git log --decorate | grep '(tag: ' | awk '{ printf($3) }' | awk -F ')' '{ printf($1) }'`
+#          LOG_TAG=`git log --decorate | grep '(tag: ' | awk '{ printf($3) }' | awk -F ')' '{ printf($1) }'`
+#          echo $LOG_TAG
+          git fetch --tags
+          git log --decorate
+          echo $(git describe --tags --always --abbrev=0)
+          echo "GIT_TAG=`echo $(git describe --tags --always --abbrev=0)`" >> $GITHUB_ENV
+          echo ${{ env.GIT_TAG }}
 
       - name: Current Tag Version
         run: |
