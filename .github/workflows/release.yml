@@ -59,20 +59,20 @@ jobs:
           echo NEXT_PATCH_NUMBER=$CUR_PATCH_NUMBER >> $GITHUB_ENV
 
       - name: MINOR - 다음 버전 계산
-        if: ${{ env.VERSION }} == 'minor'
+        if: ${{ inputs.version == 'minor' }}
         run: |
           CUR_MINOR_NUMBER=${{ env.NEXT_MINOR_NUMBER }}
           NEXT_MINOR_NUMBER=`expr $CUR_MINOR_NUMBER + 1`
           echo "NEXT_MINOR_NUMBER=$NEXT_MINOR_NUMBER" >> $GITHUB_ENV
-          echo "마이너 버전 업: $CUR_MINOR_NUMBER ---> ${{ env.NEXT_MINOR_NUMBER }}"
+          echo "마이너 버전 업: $CUR_MINOR_NUMBER ---> $NEXT_MINOR_NUMBER"
 
       - name: PATCH - 다음 버전 계산
-        if: ${{ env.VERSION }} == 'patch'
+        if: ${{ inputs.version == 'patch' }}
         run: |
           CUR_PATCH_NUMBER=${{ env.NEXT_PATCH_NUMBER }}
           NEXT_PATCH_NUMBER=`expr $CUR_PATCH_NUMBER + 1`
           echo "NEXT_PATCH_NUMBER=$NEXT_PATCH_NUMBER" >> $GITHUB_ENV
-          echo "패치 버전 업: $CUR_PATCH_NUMBER ---> ${{ env.NEXT_PATCH_NUMBER }}"
+          echo "패치 버전 업: $CUR_PATCH_NUMBER ---> $NEXT_PATCH_NUMBER"
 
     outputs:
       next_major: ${{ env.NEXT_MAJOR_NUMBER }}
