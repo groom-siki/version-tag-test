@@ -32,8 +32,8 @@ jobs:
           echo "GIT_TAG=`echo $(git tag --list --sort=-v:refname | head -1 | sed 's/v//g')`" >> $GITHUB_ENV
           echo ${{ env.GIT_TAG }}
 
-      outputs:
-        current_tag: ${{ steps.tag.outputs.GIT_TAG }}
+    outputs:
+      current_tag: ${{ steps.tag.outputs.GIT_TAG }}
 
   calculate:
     needs: init
@@ -77,15 +77,30 @@ jobs:
           echo "NEXT_PATCH_NUMBER=NEXT_PATCH_NUMBER" >> $GITHUB_ENV
           echo "패치 버전 업: CUR_PATCH_NUMBER ---> ${{ env.NEXT_PATCH_NUMBER }}"
 
+    outputs:
+      next_major: ${{ env.NEXT_MAJOR_NUMBER }}
+      next_minor: ${{ env.NEXT_MINOR_NUMBER }}
+      next_patch: ${{ env.NEXT_PATCH_NUMBER }}
+      tag: ${{ env.TAG }}
+
+  build:
+    runs-on: ubuntu-latest
+    needs: calculate
+    env:
+      NEXT_MAJOR: ${{ needs.calculate.outputs.next_major }}
+      NEXT_MINOR: ${{ needs.calculate.outputs.next_minor }}
+      NEXT_PATCH: ${{ needs.calculate.outputs.next_patch }}
+      TAG: ${{ needs.calculate.outputs.tag }}
+
       - name: 다음 버전 COMMIT
         run: |
           git config --global user.name 'croquiscom-pim'
           git config --global user.email 'admin@croquis.com'
           AUTHOR="${{ github.event.sender.login }} <${{ github.event.sender.id }}+${{ github.event.sender.login }}@users.noreply.github.com>"
-          GIT_NEXT_TAG="v${{ env.NEXT_MAJOR_NUMBER }}.${{ env.NEXT_MINOR_NUMBER }}.${{ env.NEXT_PATCH_NUMBER }}"
+          GIT_NEXT_TAG="v${{ env.NEXT_MAJOR }}.${{ env.NEXT_MINOR }}.${{ env.NEXT_PATCH }}"
           echo "GIT_NEXT_TAG=$GIT_NEXT_TAG" >> $GITHUB_ENV
           VERSION=${{ env.GIT_NEXT_TAG }}
-          echo "CUR VERSION ${{ env.GIT_TAG }} -> NEXT VERSION [$VERSION], COMMITTED BY [$AUTHOR]"
+          echo "CUR VERSION ${{ env.TAG }} -> NEXT VERSION [$VERSION], COMMITTED BY [$AUTHOR]"
           git commit -m "$VERSION" --author "$AUTHOR"
           git push
           echo $VERSION
