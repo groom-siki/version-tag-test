@@ -2,11 +2,9 @@ name: production-release
 
 on:
   workflow_dispatch:
-    branches:
-      - 'production'
     inputs:
       version:
-        description: 배포 Tag 버전 업
+        description: 프로덕션 배포 TAG 버전 업
         required: true
         default: patch
         type: choice
@@ -15,6 +13,7 @@ on:
           - patch
 
 jobs:
+  if: github.ref == 'refs/heads/production'
   init:
     name: 기존 태그 버전 확인
     runs-on: ubuntu-latest
