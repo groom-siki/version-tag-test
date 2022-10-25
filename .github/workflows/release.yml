@@ -94,22 +94,17 @@ jobs:
       - name: GITHUB ACTIONS 체크아웃
         uses: actions/checkout@v2
 
-      - name: 다음 버전 COMMIT
+      - name: 새 태그 및 저자 설정
         run: |
           git config --global user.name 'croquiscom-pim'
           git config --global user.email 'admin@croquis.com'
-          AUTHOR="${{ github.event.sender.login }}<${{ github.event.sender.id }}+${{ github.event.sender.login }}@users.noreply.github.com>"
           GIT_NEXT_TAG="v${{ env.NEXT_MAJOR }}.${{ env.NEXT_MINOR }}.${{ env.NEXT_PATCH }}"
+          AUTHOR="${{ github.event.sender.login }}<${{ github.event.sender.id }}+${{ github.event.sender.login }}@users.noreply.github.com>"
           echo "GIT_NEXT_TAG=$GIT_NEXT_TAG" >> $GITHUB_ENV
-          git commit -m $GIT_NEXT_TAG --author $AUTHOR
-          git push
-          echo "CUR VERSION ${{ env.TAG }} -> NEXT VERSION $GIT_NEXT_TAG, COMMITTED BY $AUTHOR"
+          echo "AUTHOR=$AUTHOR" >> $GITHUB_ENV
 
       - name: 다음 버전 RELEASE
         run: |
-          GIT_NEXT_TAG=${{ env.GIT_NEXT_TAG }}
-          git checkout --detach
-          git commit --allow-empty -m "dist: v$GIT_NEXT_TAG"
-          git tag v$GIT_NEXT_TAG
+          git tag ${{ env.GIT_NEXT_TAG }}
           git push --tags
-          echo "NEXT VERSION [$GIT_NEXT_TAG] RELEASE COMPLETE"
+          echo "NEXT VERSION ${{ env.GIT_NEXT_TAG }} RELEASE COMPLETE BY ${{ env.AUTHOR }}"
