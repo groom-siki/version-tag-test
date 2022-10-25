@@ -14,25 +14,8 @@ on:
         - patch
 
 jobs:
-
-  init:
-    name: prepare build step
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Extract Tag
-        id: tag
-        run: echo "VERSION=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_OUTPUT
-
-    outputs:
-      image_tag: ${{ steps.tag.outputs.VERSION }}
-
   release:
-    needs: init
     runs-on: ubuntu-latest
-
-    env:
-      IMAGE_TAG: ${{ needs.init.outputs.image_tag }}
 
     steps:
       - name: Show Me
@@ -71,6 +54,7 @@ jobs:
           echo $LOG_TAG
           /usr/bin/git log
           /usr/bin/git log --decorate
+          /usr/bin/git describe --tags 
 
       - name: Current Tag Version
         run: |
