@@ -38,9 +38,11 @@ jobs:
   calculate:
     needs: init
     runs-on: ubuntu-latest
+
     env:
       TAG: ${{ needs.init.outputs.current_tag }}
 
+      steps:
       - name: MAJOR/MINOR/PATCH 버전 값 추출
         run: |
           CUR_MAJOR_NUMBER=`${{ env.TAG }} | awk -F '.' '{ print $1 }'`
