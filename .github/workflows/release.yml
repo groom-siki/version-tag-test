@@ -14,6 +14,7 @@ on:
 
 jobs:
   init:
+    name: 기존 태그 버전 확인
     runs-on: ubuntu-latest
 
     steps:
@@ -33,10 +34,11 @@ jobs:
           echo ${{ env.GIT_TAG }}
 
     outputs:
-      current_tag: ${{ steps.tag.outputs.GIT_TAG }}
+      current_tag: ${{ env.GIT_TAG }}
 
   calculate:
     needs: init
+    name: 다음 태그 버전 계산
     runs-on: ubuntu-latest
 
     env:
@@ -45,7 +47,6 @@ jobs:
     steps:
       - name: MAJOR/MINOR/PATCH 버전 값 추출
         run: |
-          echo "tag1: ${{ env.GIT_TAG }}"
           echo "tag2: ${{ env.TAG }}"
           CUR_MAJOR_NUMBER=`${{ env.TAG }} | awk -F '.' '{ print $1 }'`
           CUR_MINOR_NUMBER=`${{ env.TAG }} | awk -F '.' '{ print $2 }'`
@@ -86,6 +87,7 @@ jobs:
       tag: ${{ env.TAG }}
 
   build:
+    name: 새 태그 버전 배포
     runs-on: ubuntu-latest
     needs: calculate
     env:
