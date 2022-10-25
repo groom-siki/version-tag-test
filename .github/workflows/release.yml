@@ -9,8 +9,8 @@ on:
         default: patch
         type: choice
         options:
-        - minor
-        - patch
+          - minor
+          - patch
 
 jobs:
   release:
@@ -19,19 +19,19 @@ jobs:
     steps:
       - name: GITHUB ACTIONS 체크아웃
         uses: actions/checkout@v2
-        
+
       - name: TAG 버전 업 타입 확인
         run: |
           echo "배포 태그 버전 업 타입: ${{ inputs.version }}"
 
-      - name: 최신 태그 버전 추출 및 환경설정
+      - name: 최신 태그 버전 추출 및 환경변수 설정
         id: LOG_TAG
         run: |
           git fetch
           echo "LATEST TAG VERSION: $(git tag --list --sort=-v:refname | head -1 | sed 's/v//g')"
           echo "GIT_TAG=`echo $(git tag --list --sort=-v:refname | head -1 | sed 's/v//g')`" >> $GITHUB_ENV
           echo ${{ env.GIT_TAG }}
-          
+
       - name: MAJOR/MINOR/PATCH 버전 값 추출
         run: |
           CUR_MAJOR_NUMBER=`$GIT_TAG | awk -F '.' '{ print $1 }'`
@@ -43,14 +43,14 @@ jobs:
           echo NEXT_MAJOR_NUMBER=$CUR_MAJOR_NUMBER >> $GITHUB_ENV
           echo NEXT_MINOR_NUMBER=$CUR_MINOR_NUMBER >> $GITHUB_ENV
           echo NEXT_PATCH_NUMBER=$CUR_PATCH_NUMBER >> $GITHUB_ENV
-          
+
       - name: 버전 확인
         run: |
           echo ${{ env.NEXT_MAJOR_NUMBER }}
           echo ${{ env.NEXT_MINOR_NUMBER }}
           echo ${{ env.NEXT_PATCH_NUMBER }}
 
-      - name: [MINOR] 다음 버전 확인
+      - name: [ MINOR ] 다음 버전 확인
         if: ${{ inputs.version }} == 'minor'
         run: |
           CUR_MINOR_NUMBER=${{ env.NEXT_MINOR_NUMBER }}
@@ -58,14 +58,14 @@ jobs:
           echo "NEXT_MINOR_NUMBER=$NEXT_MINOR_NUMBER" >> $GITHUB_ENV
           echo "마이너 버전 업: $CUR_MINOR_NUMBER ---> ${{ env.NEXT_MINOR_NUMBER }}"
 
-      - name: [PATCH] 다음 버전 확인
+      - name: [ PATCH ] 다음 버전 확인
         if: ${{ inputs.version }} == 'patch'
         run: |
           CUR_PATCH_NUMBER=${{ env.NEXT_PATCH_NUMBER }}
           NEXT_PATCH_NUMBER=`expr CUR_PATCH_NUMBER + 1`
           echo "NEXT_PATCH_NUMBER=NEXT_PATCH_NUMBER" >> $GITHUB_ENV
           echo "패치 버전 업: CUR_PATCH_NUMBER ---> ${{ env.NEXT_PATCH_NUMBER }}"
-          
+
       - name: 다음 버전 COMMIT
         run: |
           git config --global user.name 'croquiscom-pim'
@@ -76,7 +76,7 @@ jobs:
           git commit -m "$VERSION" --author "$AUTHOR"
           git push
           echo $VERSION
-          
+
       - name: 다음 버전 RELEASE
         run: |
           VERSION="v${{ env.NEXT_MAJOR_NUMBER }}.${{ env.NEXT_MINOR_NUMBER }}.${{ env.NEXT_PATCH_NUMBER }}"
