@@ -47,7 +47,7 @@ jobs:
     steps:
       - name: MAJOR/MINOR/PATCH 버전 값 추출
         run: |
-          CUR_MAJOR_NUMBER=${{ env.TAG }} | awk -F '.' '{ print $1 }'
+          CUR_MAJOR_NUMBER=$(${{ env.TAG }} | awk -F '.' '{ print $1 }')
           CUR_MINOR_NUMBER=`${{ env.TAG }} | awk -F '.' '{ print $2 }'`
           CUR_PATCH_NUMBER=`${{ env.TAG }} | awk -F '.' '{ print $3 }'`
           echo $CUR_MAJOR_NUMBER
