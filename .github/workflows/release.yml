@@ -57,7 +57,7 @@ jobs:
       - name: 태그 확인하기
         run: |
           git log --decorate
-          echo "tag1: $(git describe --tags --always --abbrev=0)"
+          echo "tag1: $(git tag --list --sort=-v:refname | head -1 )"
           echo "GIT_TAG=`echo $(git describe --tags --always --abbrev=0)`" >> $GITHUB_ENV
           echo "tag2: ${{ env.GIT_TAG }}"
 
