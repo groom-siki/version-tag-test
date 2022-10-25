@@ -59,8 +59,8 @@ jobs:
       - name: 로그에서 tag 추출
         id: log_tag
         run: |
-          echo `git log --oneline --decorate | grep origin/production | awk '{ printf($3) }' | sed 's/,//g' | sed 's/v//g'`
-          LOG_TAG=`git log --oneline --decorate | grep origin/production | awk '{ printf($3) }' | sed 's/,//g' | sed 's/v//g'`
+          echo `git log --oneline --decorate | grep '(tag: ' | awk '{ printf($3) }' | awk -F ')' '{ printf($1) }'`
+          LOG_TAG=`git log --oneline --decorate | grep '(tag: ' | awk '{ printf($3) }' | awk -F ')' '{ printf($1) }'`
           echo $LOG_TAG
 
       - name: Checkout
