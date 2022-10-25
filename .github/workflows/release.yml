@@ -97,12 +97,11 @@ jobs:
           git config --global user.email 'admin@croquis.com'
           AUTHOR="${{ github.event.sender.login }} <${{ github.event.sender.id }}+${{ github.event.sender.login }}@users.noreply.github.com>"
           GIT_NEXT_TAG="v${{ env.NEXT_MAJOR }}.${{ env.NEXT_MINOR }}.${{ env.NEXT_PATCH }}"
+          VERSION=$GIT_NEXT_TAG
           echo "GIT_NEXT_TAG=$GIT_NEXT_TAG" >> $GITHUB_ENV
-          VERSION=${{ env.GIT_NEXT_TAG }}
-          echo "CUR VERSION ${{ env.TAG }} -> NEXT VERSION [$VERSION], COMMITTED BY [$AUTHOR]"
-          git commit -m "$VERSION" --author "$AUTHOR"
+          git commit -m $VERSION --author $AUTHOR
           git push
-          echo $VERSION
+          echo "CUR VERSION ${{ env.TAG }} -> NEXT VERSION [$VERSION], COMMITTED BY [$AUTHOR]"
 
       - name: 다음 버전 RELEASE
         run: |
