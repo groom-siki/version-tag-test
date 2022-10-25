@@ -4,12 +4,11 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: release tag versioning
+        description: 배포 Tag 버전 업
         required: true
         default: patch
         type: choice
         options:
-        - major
         - minor
         - patch
 
@@ -18,121 +17,71 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Show Me
-#        if: github.event.ref_type == 'tag'
-        env:
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-        run: |
-          echo "github context: $GITHUB_CONTEXT"
-          echo "ref_type: ${{ github.event.ref_type }}"
-
-      - name: event tag
-#        if: startsWith(github.event.ref, 'refs/tags/v')
-        env:
-          INPUT_REF: ${{ github.event.ref }}
-        run: |
-          echo "ref: ${{ github.event.ref }}"
-          echo "image tag1: ${{ env.IMAGE_TAG }}"
-          echo image tag2: $IMAGE_TAG
-
-      - name: GITHUB_REF에서 tag 추출
-        id: tag
-        run: echo "IMAGE_TAG=${INPUT_REF/refs\/tags\//}" >> $GITHUB_ENV
-
-      - name: Checkout
+      - name: GITHUB ACTIONS 체크아웃
         uses: actions/checkout@v2
         
-      - name: Check Release Type
+      - name: TAG 버전 업 타입 확인
         run: |
-          echo "release tag version type: ${{ inputs.version }}"
+          echo "배포 태그 버전 업 타입: ${{ inputs.version }}"
 
-      - name: 로그에서 tag 추출
-        id: log_tag
+      - name: 최신 태그 버전 추출 및 환경설정
+        id: LOG_TAG
         run: |
-          echo `git log --decorate | grep '(tag: ' | awk '{ printf($3) }' | awk -F ')' '{ printf($1) }'`
-          LOG_TAG=`git log --decorate | grep '(tag: ' | awk '{ printf($3) }' | awk -F ')' '{ printf($1) }'`
-          echo $LOG_TAG
           git fetch
-
-      - name: 태그 확인하기
-        run: |
-          git log --decorate
-          echo "tag1: $(git tag --list --sort=-v:refname | head -1 )"
-          echo "GIT_TAG=`echo $(git describe --tags --always --abbrev=0)`" >> $GITHUB_ENV
-          echo "tag2: ${{ env.GIT_TAG }}"
-
-      - name: Current Tag Version
-        run: |
-          echo ${{ env.IMAGE_TAG }}
+          echo "LATEST TAG VERSION: $(git tag --list --sort=-v:refname | head -1 | sed 's/v//g')"
+          echo "GIT_TAG=`echo $(git tag --list --sort=-v:refname | head -1 | sed 's/v//g')`" >> $GITHUB_ENV
+          echo ${{ env.GIT_TAG }}
           
-      - name: Setting Current Tag Version
+      - name: MAJOR/MINOR/PATCH 버전 값 추출
         run: |
-          CUR_MAJOR_NUMBER=`git describe --tags | sed 's/v//g' | awk -F '.' '{ print $1 }'`
-          CUR_MINOR_NUMBER=`git describe --tags | sed 's/v//g' | awk -F '.' '{ print $2 }'`
-          CUR_PATCH_NUMBER=`git describe --tags | sed 's/v//g' | awk -F '.' '{ print $3 }'`
+          CUR_MAJOR_NUMBER=`$GIT_TAG | awk -F '.' '{ print $1 }'`
+          CUR_MINOR_NUMBER=`$GIT_TAG | awk -F '.' '{ print $2 }'`
+          CUR_PATCH_NUMBER=`$GIT_TAG | awk -F '.' '{ print $3 }'`
           echo $CUR_MAJOR_NUMBER
           echo $CUR_MINOR_NUMBER
           echo $CUR_PATCH_NUMBER
           echo NEXT_MAJOR_NUMBER=$CUR_MAJOR_NUMBER >> $GITHUB_ENV
           echo NEXT_MINOR_NUMBER=$CUR_MINOR_NUMBER >> $GITHUB_ENV
           echo NEXT_PATCH_NUMBER=$CUR_PATCH_NUMBER >> $GITHUB_ENV
-#          echo "NEXT_MAJOR_NUMBER=$CUR_MAJOR_NUMBER" >> $GITHUB_ENV
-#          echo "NEXT_MINOR_NUMBER=$CUR_MINOR_NUMBER" >> $GITHUB_ENV
-#          echo "NEXT_PATCH_NUMBER=$CUR_PATCH_NUMBER" >> $GITHUB_ENV
           
-      - name: cur major
-        run: echo ${{ env.NEXT_MAJOR_NUMBER }}
-
-      - name: cur minor
-        run: echo ${{ env.NEXT_MINOR_NUMBER }}
-        
-      - name: cur patch
-        run: echo ${{ env.NEXT_PATCH_NUMBER }}
-
-      - name: Calculate Next Major version Tag
-        if: ${{ inputs.version }} == 'major'
+      - name: 버전 확인
         run: |
-          CUR_MAJOR_NUMBER=`git describe --tags | sed 's/v//g' | awk -F '.' '{ print $1 }'`
-          NEXT_MAJOR_NUMBER=`expr $CUR_MAJOR_NUMBER + 1`
-          echo "NEXT_MAJOR_NUMBER=$NEXT_MAJOR_NUMBER" >> $GITHUB_ENV
-          echo $NEXT_MAJOR_NUMBER
+          echo ${{ env.NEXT_MAJOR_NUMBER }}
+          echo ${{ env.NEXT_MINOR_NUMBER }}
+          echo ${{ env.NEXT_PATCH_NUMBER }}
 
-      - name: Calculate Next Minor version Tag
+      - name: [MINOR] 다음 버전 확인
         if: ${{ inputs.version }} == 'minor'
         run: |
-          CUR_MINOR_NUMBER=`git describe --tags | sed 's/v//g' | awk -F '.' '{ print $2 }'`
+          CUR_MINOR_NUMBER=${{ env.NEXT_MINOR_NUMBER }}
           NEXT_MINOR_NUMBER=`expr $CUR_MINOR_NUMBER + 1`
           echo "NEXT_MINOR_NUMBER=$NEXT_MINOR_NUMBER" >> $GITHUB_ENV
-          echo $NEXT_MINOR_NUMBER
+          echo "마이너 버전 업: $CUR_MINOR_NUMBER ---> ${{ env.NEXT_MINOR_NUMBER }}"
 
-      - name: Calculate Next Patch version Tag
+      - name: [PATCH] 다음 버전 확인
         if: ${{ inputs.version }} == 'patch'
         run: |
-          CUR_PATCH_NUMBER=`git describe --tags | sed 's/v//g' | awk -F '.' '{ print $3 }'`
-          NEXT_PATCH_NUMBER=`expr $CUR_PATCH_NUMBER + 1`
-          echo "NEXT_PATCH_NUMBER=$NEXT_PATCH_NUMBER" >> $GITHUB_ENV
-          echo $NEXT_PATCH_NUMBER
-
-      - name: Version up
-        run: |
-          VERSION=${{ env.ECLIPSE_IMAGE_TAGS }}
-          git commit -m "$VERSION" --author "$AUTHOR"
-          git push
+          CUR_PATCH_NUMBER=${{ env.NEXT_PATCH_NUMBER }}
+          NEXT_PATCH_NUMBER=`expr CUR_PATCH_NUMBER + 1`
+          echo "NEXT_PATCH_NUMBER=NEXT_PATCH_NUMBER" >> $GITHUB_ENV
+          echo "패치 버전 업: CUR_PATCH_NUMBER ---> ${{ env.NEXT_PATCH_NUMBER }}"
           
-      - name: Add release commit
+      - name: 다음 버전 COMMIT
         run: |
           git config --global user.name 'croquiscom-pim'
           git config --global user.email 'admin@croquis.com'
           AUTHOR="${{ github.event.sender.login }} <${{ github.event.sender.id }}+${{ github.event.sender.login }}@users.noreply.github.com>"
           VERSION="v${{ env.NEXT_MAJOR_NUMBER }}.${{ env.NEXT_MINOR_NUMBER }}.${{ env.NEXT_PATCH_NUMBER }}"
+          echo "NEXT VERSION [$VERSION] COMMITTED BY [$AUTHOR]"
           git commit -m "$VERSION" --author "$AUTHOR"
           git push
           echo $VERSION
           
-      - name: Release version
+      - name: 다음 버전 RELEASE
         run: |
           VERSION="v${{ env.NEXT_MAJOR_NUMBER }}.${{ env.NEXT_MINOR_NUMBER }}.${{ env.NEXT_PATCH_NUMBER }}"
           git checkout --detach
           git commit --allow-empty -m "dist: v$VERSION"
           git tag v$VERSION
           git push --tags
+          echo "NEXT VERSION [$VERSION] RELEASE COMPLETE"
