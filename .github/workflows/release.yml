@@ -24,6 +24,7 @@ jobs:
       - name: TAG 버전 업 타입 확인
         run: |
           echo "배포 태그 버전 업 타입: ${{ inputs.version }}"
+          echo "VERSION=${{ inputs.version }}" >> $GITHUB_ENV
 
       - name: 최신 태그 버전 추출 및 환경변수 설정
         id: tag
@@ -35,6 +36,7 @@ jobs:
 
     outputs:
       current_tag: ${{ env.GIT_TAG }}
+      version: ${{ env.VERSION }}
 
   calculate:
     needs: init
@@ -43,6 +45,7 @@ jobs:
 
     env:
       TAG: ${{ needs.init.outputs.current_tag }}
+      VERSION: ${{ needs.init.outputs.version }}
 
     steps:
       - name: MAJOR/MINOR/PATCH 버전 값 추출
@@ -51,34 +54,25 @@ jobs:
           CUR_MAJOR_NUMBER=`echo $CUR_TAG | cut -d '.' -f1`
           CUR_MINOR_NUMBER=`echo $CUR_TAG | cut -d '.' -f2`
           CUR_PATCH_NUMBER=`echo $CUR_TAG | cut -d '.' -f3`
-          echo $CUR_MAJOR_NUMBER
-          echo $CUR_MINOR_NUMBER
-          echo $CUR_PATCH_NUMBER
           echo NEXT_MAJOR_NUMBER=$CUR_MAJOR_NUMBER >> $GITHUB_ENV
           echo NEXT_MINOR_NUMBER=$CUR_MINOR_NUMBER >> $GITHUB_ENV
           echo NEXT_PATCH_NUMBER=$CUR_PATCH_NUMBER >> $GITHUB_ENV
 
-      - name: 버전 확인
-        run: |
-          echo ${{ env.NEXT_MAJOR_NUMBER }}
-          echo ${{ env.NEXT_MINOR_NUMBER }}
-          echo ${{ env.NEXT_PATCH_NUMBER }}
-
-      - name: MINOR - 다음 버전 확인
-        if: ${{ inputs.version }} == 'minor'
+      - name: MINOR - 다음 버전 계산
+        if: ${{ env.VERSION }} == 'minor'
         run: |
           CUR_MINOR_NUMBER=${{ env.NEXT_MINOR_NUMBER }}
           NEXT_MINOR_NUMBER=`expr $CUR_MINOR_NUMBER + 1`
           echo "NEXT_MINOR_NUMBER=$NEXT_MINOR_NUMBER" >> $GITHUB_ENV
           echo "마이너 버전 업: $CUR_MINOR_NUMBER ---> ${{ env.NEXT_MINOR_NUMBER }}"
 
-      - name: PATCH - 다음 버전 확인
-        if: ${{ inputs.version }} == 'patch'
+      - name: PATCH - 다음 버전 계산
+        if: ${{ env.VERSION }} == 'patch'
         run: |
           CUR_PATCH_NUMBER=${{ env.NEXT_PATCH_NUMBER }}
-          NEXT_PATCH_NUMBER=`expr CUR_PATCH_NUMBER + 1`
-          echo "NEXT_PATCH_NUMBER=NEXT_PATCH_NUMBER" >> $GITHUB_ENV
-          echo "패치 버전 업: CUR_PATCH_NUMBER ---> ${{ env.NEXT_PATCH_NUMBER }}"
+          NEXT_PATCH_NUMBER=`expr $CUR_PATCH_NUMBER + 1`
+          echo "NEXT_PATCH_NUMBER=$NEXT_PATCH_NUMBER" >> $GITHUB_ENV
+          echo "패치 버전 업: $CUR_PATCH_NUMBER ---> ${{ env.NEXT_PATCH_NUMBER }}"
 
     outputs:
       next_major: ${{ env.NEXT_MAJOR_NUMBER }}
