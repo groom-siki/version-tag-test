@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 프로덕션 배포 TAG 버전 업
+        description: 프로덕션 배포 TAG 버전 업 (branch 확인)
         required: true
         default: patch
         type: choice
