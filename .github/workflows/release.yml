@@ -33,7 +33,7 @@ jobs:
       - name: 최신 태그 버전 추출 및 환경변수 설정
         id: tag
         run: |
-          git fetch
+          git fetch --all --tags
           echo "LATEST TAG VERSION: $(git tag --list --sort=-v:refname | head -1 | sed 's/v//g')"
           echo "GIT_TAG=`echo $(git tag --list --sort=-v:refname | head -1 | sed 's/v//g')`" >> $GITHUB_ENV
           echo ${{ env.GIT_TAG }}
