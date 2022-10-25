@@ -46,9 +46,9 @@ jobs:
 
       - name: 버전 확인
         run: |
-          echo ${{ env.NEXT_MAJOR_NUMBER }}
-          echo ${{ env.NEXT_MINOR_NUMBER }}
-          echo ${{ env.NEXT_PATCH_NUMBER }}
+          echo "${{ env.NEXT_MAJOR_NUMBER }}"
+          echo "${{ env.NEXT_MINOR_NUMBER }}"
+          echo "${{ env.NEXT_PATCH_NUMBER }}"
 
       - name: [ MINOR ] 다음 버전 확인
         if: ${{ inputs.version }} == 'minor'
@@ -71,15 +71,17 @@ jobs:
           git config --global user.name 'croquiscom-pim'
           git config --global user.email 'admin@croquis.com'
           AUTHOR="${{ github.event.sender.login }} <${{ github.event.sender.id }}+${{ github.event.sender.login }}@users.noreply.github.com>"
-          VERSION="v${{ env.NEXT_MAJOR_NUMBER }}.${{ env.NEXT_MINOR_NUMBER }}.${{ env.NEXT_PATCH_NUMBER }}"
-          echo "NEXT VERSION [$VERSION] COMMITTED BY [$AUTHOR]"
+          GIT_NEXT_TAG="v${{ env.NEXT_MAJOR_NUMBER }}.${{ env.NEXT_MINOR_NUMBER }}.${{ env.NEXT_PATCH_NUMBER }}"
+          echo "GIT_NEXT_TAG=$GIT_NEXT_TAG" >> $GITHUB_ENV
+          VERSION=${{ env.GIT_NEXT_TAG }}
+          echo "CUR VERSION ${{ env.GIT_TAG }} -> NEXT VERSION [$VERSION], COMMITTED BY [$AUTHOR]"
           git commit -m "$VERSION" --author "$AUTHOR"
           git push
           echo $VERSION
 
       - name: 다음 버전 RELEASE
         run: |
-          VERSION="v${{ env.NEXT_MAJOR_NUMBER }}.${{ env.NEXT_MINOR_NUMBER }}.${{ env.NEXT_PATCH_NUMBER }}"
+          VERSION=${{ env.GIT_NEXT_TAG }}
           git checkout --detach
           git commit --allow-empty -m "dist: v$VERSION"
           git tag v$VERSION
