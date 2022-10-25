@@ -3,7 +3,7 @@ name: production-release
 on:
   workflow_dispatch:
     branches:
-      - production
+      - 'production'
     inputs:
       version:
         description: 배포 Tag 버전 업
