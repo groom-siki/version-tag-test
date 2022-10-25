@@ -13,7 +13,7 @@ on:
           - patch
 
 jobs:
-  release:
+  init:
     runs-on: ubuntu-latest
 
     steps:
@@ -25,18 +25,27 @@ jobs:
           echo "배포 태그 버전 업 타입: ${{ inputs.version }}"
 
       - name: 최신 태그 버전 추출 및 환경변수 설정
-        id: LOG_TAG
+        id: tag
         run: |
           git fetch
           echo "LATEST TAG VERSION: $(git tag --list --sort=-v:refname | head -1 | sed 's/v//g')"
           echo "GIT_TAG=`echo $(git tag --list --sort=-v:refname | head -1 | sed 's/v//g')`" >> $GITHUB_ENV
           echo ${{ env.GIT_TAG }}
 
+      outputs:
+        current_tag: ${{ steps.tag.outputs.GIT_TAG }}
+
+  calculate:
+    needs: init
+    runs-on: ubuntu-latest
+    env:
+      TAG: ${{ needs.init.outputs.current_tag }}
+
       - name: MAJOR/MINOR/PATCH 버전 값 추출
         run: |
-          CUR_MAJOR_NUMBER=`${{ env.GIT_TAG }} | awk -F '.' '{ print $1 }'`
-          CUR_MINOR_NUMBER=`${{ env.GIT_TAG }} | awk -F '.' '{ print $2 }'`
-          CUR_PATCH_NUMBER=`${{ env.GIT_TAG }} | awk -F '.' '{ print $3 }'`
+          CUR_MAJOR_NUMBER=`${{ env.TAG }} | awk -F '.' '{ print $1 }'`
+          CUR_MINOR_NUMBER=`${{ env.TAG }} | awk -F '.' '{ print $2 }'`
+          CUR_PATCH_NUMBER=`${{ env.TAG }} | awk -F '.' '{ print $3 }'`
           echo $CUR_MAJOR_NUMBER
           echo $CUR_MINOR_NUMBER
           echo $CUR_PATCH_NUMBER
