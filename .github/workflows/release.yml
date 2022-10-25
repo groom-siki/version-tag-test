@@ -13,8 +13,8 @@ on:
           - patch
 
 jobs:
-  if: github.ref == 'refs/heads/production'
   init:
+    if: github.ref == 'refs/heads/production'
     name: 기존 태그 버전 확인
     runs-on: ubuntu-latest
 
@@ -40,6 +40,7 @@ jobs:
       version: ${{ env.VERSION }}
 
   calculate:
+    if: github.ref == 'refs/heads/production'
     needs: init
     name: 다음 태그 버전 계산
     runs-on: ubuntu-latest
@@ -82,6 +83,7 @@ jobs:
       tag: ${{ env.TAG }}
 
   build:
+    if: github.ref == 'refs/heads/production'
     name: 새 태그 버전 배포
     runs-on: ubuntu-latest
     needs: calculate
