@@ -91,23 +91,30 @@ jobs:
       TAG: ${{ needs.calculate.outputs.tag }}
 
     steps:
+      - name: GITHUB ACTIONS 체크아웃
+        uses: actions/checkout@v2
+
       - name: 다음 버전 COMMIT
         run: |
           git config --global user.name 'croquiscom-pim'
           git config --global user.email 'admin@croquis.com'
+          
           AUTHOR="${{ github.event.sender.login }} <${{ github.event.sender.id }}+${{ github.event.sender.login }}@users.noreply.github.com>"
           GIT_NEXT_TAG="v${{ env.NEXT_MAJOR }}.${{ env.NEXT_MINOR }}.${{ env.NEXT_PATCH }}"
-          VERSION=$GIT_NEXT_TAG
           echo "GIT_NEXT_TAG=$GIT_NEXT_TAG" >> $GITHUB_ENV
-          git commit -m $VERSION --author $AUTHOR
+          
+          git commit -m $GIT_NEXT_TAG --author $AUTHOR
           git push
-          echo "CUR VERSION ${{ env.TAG }} -> NEXT VERSION [$VERSION], COMMITTED BY [$AUTHOR]"
+          
+          echo "CUR VERSION ${{ env.TAG }} -> NEXT VERSION [$GIT_NEXT_TAG], COMMITTED BY [$AUTHOR]"
 
       - name: 다음 버전 RELEASE
         run: |
-          VERSION=${{ env.GIT_NEXT_TAG }}
+          GIT_NEXT_TAG=${{ env.GIT_NEXT_TAG }}
+          
           git checkout --detach
-          git commit --allow-empty -m "dist: v$VERSION"
-          git tag v$VERSION
+          git commit --allow-empty -m "dist: v$GIT_NEXT_TAG"
+          git tag v$GIT_NEXT_TAG
           git push --tags
-          echo "NEXT VERSION [$VERSION] RELEASE COMPLETE"
+          
+          echo "NEXT VERSION [$GIT_NEXT_TAG] RELEASE COMPLETE"
