@@ -14,8 +14,25 @@ on:
         - patch
 
 jobs:
-  release:
+
+  init:
+    name: prepare build step
     runs-on: ubuntu-latest
+
+    steps:
+      - name: Extract Tag
+        id: tag
+        run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
+
+    outputs:
+      image_tag: ${{ steps.tag.outputs.VERSION }}
+
+  release:
+    needs: init
+    runs-on: ubuntu-latest
+
+    env:
+      IMAGE_TAG: ${{ needs.init.outputs.image_tag }}
 
     steps:
       - name: Show Me
@@ -23,14 +40,17 @@ jobs:
         env:
           GITHUB_CONTEXT: ${{ toJson(github) }}
         run: |
-          echo "$GITHUB_CONTEXT"
-          echo "${{ github.event.ref_type }}"
+          echo "github context: $GITHUB_CONTEXT"
+          echo "ref_type: ${{ github.event.ref_type }}"
 
       - name: event tag
 #        if: startsWith(github.event.ref, 'refs/tags/v')
         env:
           INPUT_REF: ${{ github.event.ref }}
-        run: echo "${{ github.event.ref }}"
+        run: |
+          echo "ref: ${{ github.event.ref }}"
+          echo "image tag1: ${{ env.IMAGE_TAG }}"
+          echo image tag2: $IMAGE_TAG
 
       - name: Extract Tag
         id: tag
