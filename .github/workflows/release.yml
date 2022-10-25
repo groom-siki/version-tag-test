@@ -56,19 +56,19 @@ jobs:
         id: tag
         run: echo "IMAGE_TAG=${INPUT_REF/refs\/tags\//}" >> $GITHUB_ENV
 
-      - name: 로그에서 tag 추출
-        id: log_tag
-        run: |
-          echo `git log --oneline --decorate | grep '(tag: ' | awk '{ printf($3) }' | awk -F ')' '{ printf($1) }'`
-          LOG_TAG=`git log --oneline --decorate | grep '(tag: ' | awk '{ printf($3) }' | awk -F ')' '{ printf($1) }'`
-          echo $LOG_TAG
-
       - name: Checkout
         uses: actions/checkout@v2
         
       - name: Check Release Type
         run: |
           echo "release tag version type: ${{ inputs.version }}"
+
+      - name: 로그에서 tag 추출
+        id: log_tag
+        run: |
+          echo `git log --oneline --decorate | grep '(tag: ' | awk '{ printf($3) }' | awk -F ')' '{ printf($1) }'`
+          LOG_TAG=`git log --oneline --decorate | grep '(tag: ' | awk '{ printf($3) }' | awk -F ')' '{ printf($1) }'`
+          echo $LOG_TAG
 
       - name: Current Tag Version
         run: |
