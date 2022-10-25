@@ -66,11 +66,11 @@ jobs:
       - name: 로그에서 tag 추출
         id: log_tag
         run: |
-          echo `git log --oneline --decorate | grep '(tag: ' | awk '{ printf($3) }' | awk -F ')' '{ printf($1) }'`
-          LOG_TAG=`git log --oneline --decorate | grep '(tag: ' | awk '{ printf($3) }' | awk -F ')' '{ printf($1) }'`
+          echo `git log --decorate | grep '(tag: ' | awk '{ printf($3) }' | awk -F ')' '{ printf($1) }'`
+          LOG_TAG=`git log --decorate | grep '(tag: ' | awk '{ printf($3) }' | awk -F ')' '{ printf($1) }'`
           echo $LOG_TAG
           /usr/bin/git log
-          /usr/bin/git --oneline --decorate
+          /usr/bin/git --decorate
 
       - name: Current Tag Version
         run: |
