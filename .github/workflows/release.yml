@@ -46,10 +46,9 @@ jobs:
 
       - name: 버전 확인
         run: |
-          echo "${{ env.NEXT_MAJOR_NUMBER }}"
-          echo "${{ env.NEXT_MINOR_NUMBER }}"
-          echo "${{ env.NEXT_PATCH_NUMBER }}"
-
+          echo ${{ env.NEXT_MAJOR_NUMBER }}
+          echo ${{ env.NEXT_MINOR_NUMBER }}
+          echo ${{ env.NEXT_PATCH_NUMBER }}
       - name: [ MINOR ] 다음 버전 확인
         if: ${{ inputs.version }} == 'minor'
         run: |
