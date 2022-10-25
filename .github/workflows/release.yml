@@ -22,7 +22,7 @@ jobs:
     steps:
       - name: Extract Tag
         id: tag
-        run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
+        run: echo "VERSION=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_OUTPUT
 
     outputs:
       image_tag: ${{ steps.tag.outputs.VERSION }}
