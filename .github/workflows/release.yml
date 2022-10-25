@@ -14,7 +14,10 @@ on:
       production-branch:
         description: 프로덕션 Branch
         required: true
+        type: choice
         default: 'production'
+        options:
+          - production
 
 jobs:
   init:
@@ -36,6 +39,7 @@ jobs:
       - name: 최신 태그 버전 추출 및 환경변수 설정
         id: tag
         run: |
+          git checkout ${{ github.event.inputs.production-branch }}
           git fetch
           echo "LATEST TAG VERSION: $(git tag --list --sort=-v:refname | head -1 | sed 's/v//g')"
           echo "GIT_TAG=`echo $(git tag --list --sort=-v:refname | head -1 | sed 's/v//g')`" >> $GITHUB_ENV
@@ -116,6 +120,7 @@ jobs:
 
       - name: 다음 버전 RELEASE
         run: |
+          git checkout ${{ github.event.inputs.production-branch }}
           git tag ${{ env.GIT_NEXT_TAG }}
           git push --tags
           echo "NEXT VERSION ${{ env.GIT_NEXT_TAG }} RELEASE COMPLETE BY ${{ env.AUTHOR }}"
