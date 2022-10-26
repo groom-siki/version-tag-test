@@ -1,10 +1,13 @@
 name: production-release
 
 on:
+  push:
+    branches:
+      - production
   workflow_dispatch:
     inputs:
       version:
-        description: 프로덕션 배포 TAG 버전 업 (production branch 확인)
+        description: 프로덕션 배포 TAG 버전 업 (production branch 확인, 아니면 실행 안됨)
         required: true
         default: patch
         type: choice
@@ -22,7 +25,6 @@ jobs:
       - name: GITHUB ACTIONS 체크아웃
         uses: actions/checkout@v3
         with:
-          ref: ${{ github.event.inputs.production-branch }}
           fetch-depth: 10
 
       - name: TAG 버전 업 타입 확인
@@ -100,7 +102,6 @@ jobs:
       - name: GITHUB ACTIONS 체크아웃
         uses: actions/checkout@v3
         with:
-          ref: ${{ github.event.inputs.production-branch }}
           fetch-depth: 10
 
       - name: 새 태그 및 저자 설정
@@ -114,7 +115,6 @@ jobs:
 
       - name: 다음 버전 RELEASE
         run: |
-          git checkout ${{ github.event.inputs.production-branch }}
           git tag ${{ env.GIT_NEXT_TAG }}
           git push --tags
           echo "NEXT VERSION ${{ env.GIT_NEXT_TAG }} RELEASE COMPLETE BY ${{ env.AUTHOR }}"
