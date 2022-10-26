@@ -1,9 +1,6 @@
 name: production-release
 
 on:
-  push:
-    branches:
-      - production
   workflow_dispatch:
     inputs:
       version:
