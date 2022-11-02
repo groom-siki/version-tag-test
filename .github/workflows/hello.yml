@@ -1,0 +1,21 @@
+name: hi
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_run:
+    workflows: [ "production-release" ]
+    types:
+      - completed
+
+jobs:
+
+  init:
+    name: 성공시 트리거
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: hi
+        run: |
+          echo "hello world"
