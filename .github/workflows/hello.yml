@@ -19,5 +19,8 @@ jobs:
       - name: hi
         run: |
           echo "hello world"
-          echo `github.ref`
+          echo ${{ github.event_name }}
+          echo ${{ github.ref }}
+          echo ${{ github.repository }}
+          echo ${{ github.workspace }}
         if: github.ref == 'refs/heads/main'
