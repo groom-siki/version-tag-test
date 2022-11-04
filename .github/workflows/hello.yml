@@ -19,5 +19,5 @@ jobs:
       - name: hi
         run: |
           echo "hello world"
-          echo $(github.ref)
+          echo `github.ref`
         if: github.ref == 'refs/heads/main'
