@@ -23,4 +23,4 @@ jobs:
           echo ${{ github.ref }}
           echo ${{ github.repository }}
           echo ${{ github.workspace }}
-        if: github.ref == 'refs/heads/main'
+        if: github.event_name == 'workflow_run'
