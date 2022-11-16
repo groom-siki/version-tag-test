@@ -13,7 +13,7 @@ jobs:
   verify:
     name: Github Actions 배포 상태 체크
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_run' && ${{ github.event.workflow_run.conclusion == 'failure' }}
+    if: ${{ github.event.workflow_run.conclusion != 'success' && github.event_name == 'workflow_run' }}
     steps:
       - name: Github Actions 배포가 실패했습니다.
         run: |
