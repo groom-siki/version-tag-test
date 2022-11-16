@@ -16,11 +16,11 @@ jobs:
 
     steps:
       - name: Github Actions 배포가 실패했습니다.
+        if: github.event_name == 'workflow_run' && ${{ github.event.workflow_run.conclusion }} == 'fail'
         run: |
           echo ${{ github.event_name }}
           echo ${{ github.event.workflow_run.conclusion }}
           exit 1
-        if: github.event_name == 'workflow_run' && ${{ github.event.workflow_run.conclusion }} == 'fail'
 
   init:
     name: 성공시 트리거
