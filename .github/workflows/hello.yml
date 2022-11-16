@@ -21,6 +21,7 @@ jobs:
 
   init:
     name: 성공시 트리거
+    needs: verify
     runs-on: ubuntu-latest
 
     steps:
