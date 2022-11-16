@@ -14,13 +14,13 @@ on:
 
 jobs:
   verify:
-    if: github.ref != 'refs/heads/production'
     name: 프로뎍션 레포지토리 체크
+    if: github.ref == 'refs/heads/production'
     runs-on: ubuntu-latest
 
     steps:
-      - name: 프로뎍션 레포지토리에서 배포해주세요
-        run: exit 1
+      - name: 프로덕션 레포지토리 확인
+        run: exit 0
 
   init:
     name: 기존 태그 버전 확인
