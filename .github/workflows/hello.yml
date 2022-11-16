@@ -7,7 +7,7 @@ on:
   workflow_run:
     workflows: [ "production-release" ]
     types:
-      - completed
+      - completed1
 
 jobs:
 
@@ -16,6 +16,22 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Extract Tag
+        id: tag
+        run: |
+          git fetch --all --tags
+          echo "VERSION: $(git tag --list --sort=-v:refname | head -1)"
+          echo "VERSION=`echo $(git tag --list --sort=-v:refname | head -1)`" >> $GITHUB_OUTPUT
+
+      - name: Checkout-new-tag
+          uses: actions/checkout@v2
+          with:
+            fetch-depth: 0
+            ref: ${{ steps.tag.outputs.VERSION }}
+
       - name: hi
         run: |
           echo "hello world"
