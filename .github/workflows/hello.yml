@@ -47,4 +47,5 @@ jobs:
           echo ${{ github.ref }}
           echo ${{ github.repository }}
           echo ${{ github.workspace }}
-        if: github.event_name == 'workflow_run'
+          echo startsWith(github.event.workflow_run.conclusion, 'success') && startsWith(github.event_name, 'workflow_run')
+        if: startsWith(github.event.workflow_run.conclusion, 'success') && startsWith(github.event_name, 'workflow_run')
