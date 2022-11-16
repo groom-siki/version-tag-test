@@ -23,8 +23,8 @@ jobs:
         run: exit 1
 
   init:
-    if: github.ref == 'refs/heads/production'
     name: 기존 태그 버전 확인
+    needs: verify
     runs-on: ubuntu-latest
 
     steps:
