@@ -16,6 +16,7 @@ jobs:
   verify:
     if: github.ref != 'refs/heads/production'
     name: 프로뎍션 레포지토리가 아닌지 확인중
+    runs-on: ubuntu-latest
 
     steps:
       - name: 프로뎍션 레포지토리에서 배포해주세요
