@@ -10,7 +10,7 @@ on:
       - completed
 
 jobs:
-
+if: ${{ github.event.workflow_run.conclusion == 'success' }}
   init:
     name: 성공시 트리거
     runs-on: ubuntu-latest
