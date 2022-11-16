@@ -16,6 +16,7 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'success' && github.event_name == 'workflow_run' }}
     steps:
       - name: Github Actions 배포 성공
+        run: exit 0
 
   init:
     name: 성공시 트리거
