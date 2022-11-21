@@ -77,6 +77,7 @@ jobs:
           CUR_MINOR_NUMBER=${{ env.NEXT_MINOR_NUMBER }}
           NEXT_MINOR_NUMBER=`expr $CUR_MINOR_NUMBER + 1`
           echo "NEXT_MINOR_NUMBER=$NEXT_MINOR_NUMBER" >> $GITHUB_ENV
+          echo "NEXT_PATCH_NUMBER=0" >> $GITHUB_ENV
           echo "마이너 버전 업: $CUR_MINOR_NUMBER ---> $NEXT_MINOR_NUMBER"
 
       - name: PATCH - 다음 버전 계산
