@@ -30,8 +30,8 @@ jobs:
       - name: Extract Tag
         id: tag
         run: |
-          echo "VERSION: ${GITHUB_REF/refs\/tags\//}"
-          echo "VERSION: $(git tag --list --sort=-v:refname | head -1)"
+          echo "VERSION1: ${GITHUB_REF/refs\/tags\//}"
+          echo "VERSION2: $(git tag --list --sort=-v:refname | head -1)"
           echo "VERSION=`echo $(git tag --list --sort=-v:refname | head -1)`" >> $GITHUB_OUTPUT
 
       - name: Checkout-new-tag
