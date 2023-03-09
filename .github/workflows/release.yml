@@ -15,7 +15,7 @@ on:
 jobs:
   verify:
     name: 프로뎍션 레포지토리 체크
-    if: github.ref == 'refs/heads/production'
+    if: github.ref == 'refs/heads/production' || github.ref != 'refs/heads/production'
     runs-on: ubuntu-latest
 
     steps:
