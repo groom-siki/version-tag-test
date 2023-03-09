@@ -30,7 +30,7 @@ jobs:
       - name: Extract Tag
         id: tag
         run: |
-          git fetch --all --tags
+          echo "VERSION: ${GITHUB_REF/refs\/tags\//}"
           echo "VERSION: $(git tag --list --sort=-v:refname | head -1)"
           echo "VERSION=`echo $(git tag --list --sort=-v:refname | head -1)`" >> $GITHUB_OUTPUT
 
