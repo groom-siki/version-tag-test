@@ -30,7 +30,7 @@ jobs:
       - name: Extract Tag
         id: tag
         run: |
-          echo "this is PRODUCTION 3"
+          echo "this is PRODUCTION 4"
           echo "VERSION1: ${GITHUB_REF/refs\/tags\//}"
           echo "VERSION=`echo ${GITHUB_REF/refs\/tags\//}`" >> $GITHUB_OUTPUT
 
