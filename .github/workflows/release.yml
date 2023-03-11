@@ -123,5 +123,5 @@ jobs:
       - name: 다음 버전 RELEASE
         run: |
           git tag ${{ env.GIT_NEXT_TAG }}
-          git push --tags
+          git push tag ${{ env.GIT_NEXT_TAG }}
           echo "NEXT VERSION ${{ env.GIT_NEXT_TAG }} RELEASE COMPLETE BY ${{ env.AUTHOR }}"
