@@ -33,21 +33,29 @@ jobs:
       - name: 프로덕션 태그 결정
         id: tag-type-production
         if: ${{ inputs.tag }} == 'null' || !(startsWith(${{ inputs.tag }}, 'v'))
-        run: echo "TAG_TYPE=PRODUCTION" >> $GITHUB_OUTPUT
+        run: | 
+          echo "TAG_TYPE=PRODUCTION" >> $GITHUB_OUTPUT
+          echo "TAG_TYPE: ${{ steps.tag-type-production.outputs.TAG_TYPE }}"
       - name: 롤백 태그 결정
         id: tag-type-rollback
         if: ${{ inputs.tag }} != 'null' && startsWith(${{ inputs.tag }}, 'v')
-        run: echo "TAG_TYPE=ROLLBACK" >> $GITHUB_OUTPUT
+        run: |
+          echo "TAG_TYPE=ROLLBACK" >> $GITHUB_OUTPUT
+          echo "TAG_TYPE: ${{ steps.tag-type-production.outputs.TAG_TYPE }}"
 
   tagging:
     name: 태그 버전 설정
     needs: tag-type
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
       - name: Extract Tag (Production)
         if: ${{ steps.tag-type-production.outputs.TAG_TYPE }} == 'PRODUCTION'
         run: |
           echo "this is PRODUCTION"
+          git fetch --all --tags
           echo "VERSION: $(git tag --list --sort=-v:refname | head -1 | sed 's/v//g')"
           echo "VERSION=`echo $(git tag --list --sort=-v:refname | head -1 | sed 's/v//g')`" >> $GITHUB_ENV
 
