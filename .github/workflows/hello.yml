@@ -10,61 +10,67 @@ on:
       - completed
   workflow_dispatch:
     inputs:
-      tag:
-        description: 프로덕션 배치 롤백 시 Tag 버전 입력
-        required: false
-        default: null
-        type: string
+      tag-rollback:
+        description: 프로덕션 배치 롤백 배포일 경우 true로 설정
+        required: true
+        default: false
+        type: choice
+        options:
+          - false
+          - true
 
 jobs:
   verify:
     name: Github Actions 배포 상태 체크
     runs-on: ubuntu-latest
-    if: ${{ (github.event.workflow_run.conclusion == 'success' && github.event_name == 'workflow_run') || github.event_name != 'workflow_run' }}
+    if: |
+      ${{ (github.event.workflow_run.conclusion == 'success' && github.event_name == 'workflow_run') || (github.event_name != 'workflow_run' && startsWith(github.ref, 'v')) }}
     steps:
       - name: Github Actions 배포 성공
         run: exit 0
 
-  tag-type:
-    name: 태그 타입 결정
+  production-tag-type:
+    name: 태그 타입 설정
     needs: verify
     runs-on: ubuntu-latest
+    if: ${{ inputs.tag-rollback }} == 'false' && !startsWith(github.ref, 'v')
     steps:
       - name: 프로덕션 태그 결정
         id: tag-type-production
-        if: ${{ inputs.tag }} == 'null' || !(startsWith(${{ inputs.tag }}, 'v'))
-        run: | 
-          echo "TAG_TYPE=PRODUCTION" >> $GITHUB_OUTPUT
-          echo "TAG_TYPE: ${{ steps.tag-type-production.outputs.TAG_TYPE }}"
+        run: echo "TAG_TYPE=PRODUCTION" >> $GITHUB_ENV
+
+  rollback-tag-type:
+    name: 태그 타입 설정
+    needs: verify
+    runs-on: ubuntu-latest
+    if: ${{ inputs.tag-rollback }} == 'true' && startsWith(github.ref, 'v')
+    steps:
       - name: 롤백 태그 결정
         id: tag-type-rollback
-        if: ${{ inputs.tag }} != 'null' && startsWith(${{ inputs.tag }}, 'v')
-        run: |
-          echo "TAG_TYPE=ROLLBACK" >> $GITHUB_OUTPUT
-          echo "TAG_TYPE: ${{ steps.tag-type-production.outputs.TAG_TYPE }}"
+        run: echo "TAG_TYPE=ROLLBACK" >> $GITHUB_ENV
 
   tagging:
     name: 태그 버전 설정
-    needs: tag-type
+    needs: [production-tag-type, rollback-tag-type]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v3
 
       - name: Extract Tag (Production)
-        if: ${{ steps.tag-type-production.outputs.TAG_TYPE }} == 'PRODUCTION'
+        if: ${{ env.TAG_TYPE }} == 'PRODUCTION'
         run: |
-          echo "this is PRODUCTION"
+          echo "this is ${{ env.TAG_TYPE }}"
           git fetch --all --tags
           echo "VERSION: $(git tag --list --sort=-v:refname | head -1 | sed 's/v//g')"
           echo "VERSION=`echo $(git tag --list --sort=-v:refname | head -1 | sed 's/v//g')`" >> $GITHUB_ENV
 
       - name: Extract Tag (Rollback)
-        if: ${{ steps.tag-type-rollback.outputs.TAG_TYPE }} == 'ROLLBACK'
+        if: ${{ env.TAG_TYPE }} == 'ROLLBACK'
         run: |
-          echo "this is ROLLBACK"
-          echo "VERSION: ${{ inputs.tag }}"
-          echo "VERSION=${{ inputs.tag }}" >> $GITHUB_ENV
+          echo "this is ${{ env.TAG_TYPE }}"
+          echo "VERSION: ${{ github.ref }}"
+          echo "VERSION=${{ github.ref }}" >> $GITHUB_ENV
 
   build:
     name: 배포
