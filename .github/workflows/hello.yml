@@ -52,7 +52,7 @@ jobs:
 
   tag-release:
     name: 태그 설정 후 배포
-    if: ${{ needs.production.result != 'skipped' || needs.rollback.result != 'skipped' }}
+    if: ${{ always() && (needs.production.result != 'skipped' || needs.rollback.result != 'skipped') }}
     needs: [production, rollback]
     runs-on: ubuntu-latest
     steps:
@@ -83,7 +83,7 @@ jobs:
 
       - name: hi
         run: |
-          echo "11"
+          echo "12"
           echo "hello world"
           echo ${{ env.VERSION }}
           echo ${{ github.event_name }}
