@@ -8,6 +8,13 @@ on:
     workflows: [ "production-release" ]
     types:
       - completed
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 프로덕션 배치 롤백 시 Tag 버전 입력
+        required: false
+        default: null
+        type: string
 
 jobs:
   verify:
@@ -18,35 +25,56 @@ jobs:
       - name: Github Actions 배포 성공
         run: exit 0
 
-  init:
-    name: 성공시 트리거
+  tag-type:
+    name: 태그 타입 결정
     needs: verify
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+      - name: 프로덕션 태그 결정
+        id: tag-type-production
+        if: ${{ inputs.tag }} == 'null' || !(startsWith(${{ inputs.tag }}, 'v'))
+        run: echo "TAG_TYPE=PRODUCTION" >> $GITHUB_OUTPUT
+      - name: 롤백 태그 결정
+        id: tag-type-rollback
+        if: ${{ inputs.tag }} != 'null' && startsWith(${{ inputs.tag }}, 'v')
+        run: echo "TAG_TYPE=ROLLBACK" >> $GITHUB_OUTPUT
 
-      - name: Extract Tag
-        id: tag
+  tagging:
+    name: 태그 버전 설정
+    needs: tag-type
+    runs-on: ubuntu-latest
+    steps:
+      - name: Extract Tag (Production)
+        if: ${{ steps.tag-type-production.outputs.TAG_TYPE }} == 'PRODUCTION'
         run: |
-          echo "this is PRODUCTION 4"
-          echo "VERSION1: ${GITHUB_REF/refs\/tags\//}"
-          echo "VERSION=`echo ${GITHUB_REF/refs\/tags\//}`" >> $GITHUB_OUTPUT
+          echo "this is PRODUCTION"
+          echo "VERSION: $(git tag --list --sort=-v:refname | head -1 | sed 's/v//g')"
+          echo "VERSION=`echo $(git tag --list --sort=-v:refname | head -1 | sed 's/v//g')`" >> $GITHUB_ENV
 
+      - name: Extract Tag (Rollback)
+        if: ${{ steps.tag-type-rollback.outputs.TAG_TYPE }} == 'ROLLBACK'
+        run: |
+          echo "this is ROLLBACK"
+          echo "VERSION: ${{ inputs.tag }}"
+          echo "VERSION=${{ inputs.tag }}" >> $GITHUB_ENV
+
+  build:
+    name: 배포
+    needs: tagging
+    runs-on: ubuntu-latest
+    steps:
       - name: Checkout-new-tag
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0
-          ref: ${{ steps.tag.outputs.VERSION }}
+          ref: ${{ env.VERSION }}
 
       - name: hi
         run: |
           echo "hello world"
-          echo ${{ steps.tag.outputs.VERSION }}
+          echo ${{ env.VERSION }}
           echo ${{ github.event_name }}
           echo ${{ github.ref }}
           echo ${{ github.repository }}
           echo ${{ github.workspace }}
           echo ${{ startsWith(github.event.workflow_run.conclusion, 'success') && startsWith(github.event_name, 'workflow_run') }}
-        if: startsWith(github.event.workflow_run.conclusion, 'success') && startsWith(github.event_name, 'workflow_run')
+        if: startsWith(github.event.workflow_run.conclusion, 'success') || startsWith(github.event_name, 'workflow_run')

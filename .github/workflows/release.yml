@@ -109,6 +109,7 @@ jobs:
       - name: GITHUB ACTIONS 체크아웃
         uses: actions/checkout@v3
         with:
+          ref: production
           fetch-depth: 10
 
       - name: 새 태그 및 저자 설정
@@ -123,5 +124,5 @@ jobs:
       - name: 다음 버전 RELEASE
         run: |
           git tag ${{ env.GIT_NEXT_TAG }}
-          git push tag ${{ env.GIT_NEXT_TAG }}
+          git push origin ${{ env.GIT_NEXT_TAG }}
           echo "NEXT VERSION ${{ env.GIT_NEXT_TAG }} RELEASE COMPLETE BY ${{ env.AUTHOR }}"
