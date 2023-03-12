@@ -30,20 +30,20 @@ jobs:
         run: exit 0
 
   production-tag-type:
-    name: 태그 타입 설정
+    name: 프로덕션 태그 타입 설정
     needs: verify
     runs-on: ubuntu-latest
-    if: ${{ inputs.tag-rollback }} == 'false' && !startsWith(github.ref, 'v')
+    if: ${{ (github.event.workflow_run.conclusion == 'success' && github.event_name == 'workflow_run')
     steps:
       - name: 프로덕션 태그 결정
         id: tag-type-production
         run: echo "TAG_TYPE=PRODUCTION" >> $GITHUB_ENV
 
   rollback-tag-type:
-    name: 태그 타입 설정
+    name: 롤백 태그 타입 설정
     needs: verify
     runs-on: ubuntu-latest
-    if: ${{ inputs.tag-rollback }} == 'true' && startsWith(github.ref, 'v')
+    if: $ {{ github.event_name != 'workflow_run' && ${{ inputs.tag-rollback }} == 'true' && startsWith(github.ref, 'v') }}
     steps:
       - name: 롤백 태그 결정
         id: tag-type-rollback
