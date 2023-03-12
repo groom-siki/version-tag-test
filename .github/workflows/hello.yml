@@ -30,11 +30,13 @@ jobs:
     needs: verify
     runs-on: ubuntu-latest
     steps:
-      - name: 태그 결정
-        id: tag-type
-      - if: ${{ inputs.tag }} == 'null' || !(startsWith(${{ inputs.tag }}, 'v'))
+      - name: 프로덕션 태그 결정
+        id: tag-type-production
+        if: ${{ inputs.tag }} == 'null' || !(startsWith(${{ inputs.tag }}, 'v'))
         run: echo "TAG_TYPE=PRODUCTION" >> $GITHUB_OUTPUT
-      - if: ${{ inputs.tag }} != 'null' && startsWith(${{ inputs.tag }}, 'v')
+      - name: 롤백 태그 결정
+        id: tag-type-rollback
+        if: ${{ inputs.tag }} != 'null' && startsWith(${{ inputs.tag }}, 'v')
         run: echo "TAG_TYPE=ROLLBACK" >> $GITHUB_OUTPUT
 
   tagging:
@@ -43,14 +45,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Extract Tag (Production)
-        if: ${{ steps.tag-type.outputs.TAG_TYPE }} == 'PRODUCTION'
+        if: ${{ steps.tag-type-production.outputs.TAG_TYPE }} == 'PRODUCTION'
         run: |
           echo "this is PRODUCTION"
           echo "VERSION: $(git tag --list --sort=-v:refname | head -1 | sed 's/v//g')"
           echo "VERSION=`echo $(git tag --list --sort=-v:refname | head -1 | sed 's/v//g')`" >> $GITHUB_ENV
 
       - name: Extract Tag (Rollback)
-        if: ${{ steps.tag-type.outputs.TAG_TYPE }} == 'ROLLBACK'
+        if: ${{ steps.tag-type-rollback.outputs.TAG_TYPE }} == 'ROLLBACK'
         run: |
           echo "this is ROLLBACK"
           echo "VERSION: ${{ inputs.tag }}"
@@ -75,4 +77,4 @@ jobs:
           echo ${{ github.repository }}
           echo ${{ github.workspace }}
           echo ${{ startsWith(github.event.workflow_run.conclusion, 'success') && startsWith(github.event_name, 'workflow_run') }}
-        if: startsWith(github.event.workflow_run.conclusion, 'success') && startsWith(github.event_name, 'workflow_run')
+        if: startsWith(github.event.workflow_run.conclusion, 'success') || startsWith(github.event_name, 'workflow_run')
