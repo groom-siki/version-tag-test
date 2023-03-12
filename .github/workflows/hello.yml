@@ -33,7 +33,7 @@ jobs:
     name: 프로덕션 태그 타입 설정
     needs: verify
     runs-on: ubuntu-latest
-    if: ${{ (github.event.workflow_run.conclusion == 'success' && github.event_name == 'workflow_run')
+    if: ${{ (github.event.workflow_run.conclusion == 'success' && github.event_name == 'workflow_run') }}
     steps:
       - name: 프로덕션 태그 결정
         id: tag-type-production
