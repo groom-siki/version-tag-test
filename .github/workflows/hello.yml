@@ -55,14 +55,13 @@ jobs:
         if: ${{ needs.production.outputs.tag-type == 'PRODUCTION' }}
         run: |
           git fetch --all --tags
-          echo "${{ needs.production.outputs.tag-type == 'PRODUCTION' }}"
+          echo "this is ${{ needs.production.outputs.tag-type }}
           echo "VERSION: $(git tag --list --sort=-v:refname | head -1)"
           echo "VERSION=`echo $(git tag --list --sort=-v:refname | head -1)`" >> $GITHUB_ENV
 
       - name: Extract Tag (Rollback)
         if: ${{ inputs.tag-rollback == 'true' && startsWith(github.ref, 'refs/tags/v') }}
         run: |
-          echo "${{ inputs.tag-rollback == 'true' && startsWith(github.ref, 'refs/tags/v') }}"
           echo "this is ${{ github.ref }}"
           echo "VERSION: ${{ github.ref }}"
           echo "VERSION=${{ github.ref }}" >> $GITHUB_ENV
