@@ -52,7 +52,7 @@ jobs:
 
   tag-release:
     name: 태그 설정 후 배포
-    if: ${{ needs.production.result == 'success' || needs.rollback.result == 'success' }}
+    if: ${{ always() }}
     needs: [production, rollback]
     runs-on: ubuntu-latest
     steps:
