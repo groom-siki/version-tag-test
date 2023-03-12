@@ -56,7 +56,7 @@ jobs:
           ref: production
 
       - name: Extract Tag (Production)
-        if: $TAG_TYPE == 'PRODUCTION'
+        if: `echo $TAG_TYPE` == 'PRODUCTION'
         run: |
           echo "this is $TAG_TYPE"
           git fetch --all --tags
