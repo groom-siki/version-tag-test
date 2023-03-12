@@ -46,19 +46,14 @@ jobs:
     needs: production
     runs-on: ubuntu-latest
     steps:
-      - env:
-          TAG_TYPE: ${{ needs.production.outputs.tag-type }}
-        run: echo "$TAG_TYPE"
-
       - name: Checkout
         uses: actions/checkout@v3
         with:
           ref: production
 
       - name: Extract Tag (Production)
-        if: ${{ `echo $TAG_TYPE` == 'PRODUCTION' }}
+        if: ${{ needs.production.outputs.tag-type }} == 'PRODUCTION'
         run: |
-          echo "this is $TAG_TYPE"
           git fetch --all --tags
           echo "VERSION: $(git tag --list --sort=-v:refname | head -1 | sed 's/v//g')"
           echo "VERSION=`echo $(git tag --list --sort=-v:refname | head -1 | sed 's/v//g')`" >> $GITHUB_ENV
