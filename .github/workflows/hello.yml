@@ -24,59 +24,48 @@ jobs:
     name: Github Actions 배포 상태 체크
     runs-on: ubuntu-latest
     if: |
-      ${{ (github.event.workflow_run.conclusion == 'success' && github.event_name == 'workflow_run') || (github.event_name != 'workflow_run' && startsWith(github.ref, 'v')) }}
+      ${{ (github.event.workflow_run.conclusion == 'success' && github.event_name == 'workflow_run') || (github.event_name != 'workflow_run' && startsWith(github.ref, 'refs/tags/v') }}
     steps:
       - name: Github Actions 배포 성공
         run: exit 0
 
-  production-tag-type:
+  production:
     name: 프로덕션 태그 타입 설정
     needs: verify
     runs-on: ubuntu-latest
     if: ${{ (github.event.workflow_run.conclusion == 'success' && github.event_name == 'workflow_run') }}
     steps:
       - name: 프로덕션 태그 결정
-        id: tag-type-production
-        run: |
-          echo "TAG_TYPE=PRODUCTION" >> $GITHUB_OUTPUT
-          echo ${{ steps.tag-type-production.outputs.TAG_TYPE }}
+        id: production
+        run: echo "TAG_TYPE=PRODUCTION" >> "$GITHUB_OUTPUT"
     outputs:
-      tag-type: ${{ steps.tag-type-production.outputs.TAG_TYPE }}
-
-  rollback-tag-type:
-    name: 롤백 태그 타입 설정
-    needs: verify
-    runs-on: ubuntu-latest
-    if: $ {{ github.event_name != 'workflow_run' && ${{ inputs.tag-rollback }} == 'true' && startsWith(github.ref, 'v') }}
-    steps:
-      - name: 롤백 태그 결정
-        id: tag-type-rollback
-        run: |
-          echo "TAG_TYPE=ROLLBACK" >> $GITHUB_OUTPUT
-          echo ${{ steps.tag-type-rollback.outputs.TAG_TYPE }}
-    outputs:
-      tag-type: ${{ steps.tag-type-rollback.outputs.TAG_TYPE }}
+      tag-type: ${{ steps.production.outputs.TAG_TYPE }}
 
   tag-release:
     name: 태그 설정 후 배포
-    needs: [production-tag-type, rollback-tag-type]
+    needs: production
     runs-on: ubuntu-latest
     steps:
+      - env:
+          TAG_TYPE: ${{ needs.production.outputs.tag-type }}
+
       - name: Checkout
         uses: actions/checkout@v3
+        with:
+          ref: production
 
       - name: Extract Tag (Production)
-        if: ${{ needs.production-tag-type.outputs.tag-type }} == 'PRODUCTION'
+        if: $TAG_TYPE == 'PRODUCTION'
         run: |
-          echo "this is ${{ needs.production-tag-type.outputs.tag-type }}"
+          echo "this is $TAG_TYPE"
           git fetch --all --tags
           echo "VERSION: $(git tag --list --sort=-v:refname | head -1 | sed 's/v//g')"
           echo "VERSION=`echo $(git tag --list --sort=-v:refname | head -1 | sed 's/v//g')`" >> $GITHUB_ENV
 
       - name: Extract Tag (Rollback)
-        if: ${{ needs.rollback-tag-type.outputs.tag-type }} == 'ROLLBACK' && startsWith(github.ref, 'v')
+        if: ${{ inputs.tag-rollback }} == 'true' && startsWith(github.ref, 'refs/tags/v')
         run: |
-          echo "this is ${{ needs.rollback-tag-type.outputs.tag-type }}"
+          echo "this is ${{ github.ref }}"
           echo "VERSION: ${{ github.ref }}"
           echo "VERSION=${{ github.ref }}" >> $GITHUB_ENV
 
@@ -94,4 +83,4 @@ jobs:
           echo ${{ github.repository }}
           echo ${{ github.workspace }}
           echo ${{ startsWith(github.event.workflow_run.conclusion, 'success') && startsWith(github.event_name, 'workflow_run') }}
-        if: startsWith(github.event.workflow_run.conclusion, 'success') || startsWith(github.event_name, 'workflow_run')
+        if: ${{ startsWith(github.event.workflow_run.conclusion, 'success') || startsWith(github.event_name, 'workflow_run') }}
