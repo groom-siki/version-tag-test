@@ -45,14 +45,14 @@ jobs:
     name: 롤백 태그 확인
     needs: verify
     runs-on: ubuntu-latest
-    if: ${{ (github.event_name != 'workflow_run' && startsWith(github.ref, 'refs/tags/v')) }}
+    if: ${{ (github.event_name != 'workflow_run' && startsWith(github.ref, 'refs/tags/v') && inputs.tag-rollback == 'true') }}
     steps:
       - name: 롤백 태그 결정
         run: exit 0
 
   tag-release:
     name: 태그 설정 후 배포
-    if: ${{ always() }}
+    if: ${{ needs.production.result != 'skipped' || needs.rollback.result != 'skipped' }}
     needs: [production, rollback]
     runs-on: ubuntu-latest
     steps:
