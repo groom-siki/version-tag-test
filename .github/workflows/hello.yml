@@ -48,6 +48,7 @@ jobs:
     steps:
       - env:
           TAG_TYPE: ${{ needs.production.outputs.tag-type }}
+        run: echo "$TAG_TYPE"
 
       - name: Checkout
         uses: actions/checkout@v3
