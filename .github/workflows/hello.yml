@@ -37,7 +37,9 @@ jobs:
     steps:
       - name: 프로덕션 태그 결정
         id: tag-type-production
-        run: echo "TAG_TYPE=PRODUCTION" >> $GITHUB_OUTPUT
+        run: |
+          echo "TAG_TYPE=PRODUCTION" >> $GITHUB_OUTPUT
+          echo: ${{ steps.tag-type-production.outputs.TAG_TYPE }}
     outputs:
       tag-type: ${{ steps.tag-type-production.outputs.TAG_TYPE }}
 
@@ -49,12 +51,14 @@ jobs:
     steps:
       - name: 롤백 태그 결정
         id: tag-type-rollback
-        run: echo "TAG_TYPE=ROLLBACK" >> $GITHUB_OUTPUT
+        run: |
+          echo "TAG_TYPE=ROLLBACK" >> $GITHUB_OUTPUT
+          echo: ${{ steps.tag-type-rollback.outputs.TAG_TYPE }}
     outputs:
       tag-type: ${{ steps.tag-type-rollback.outputs.TAG_TYPE }}
 
-  tagging:
-    name: 태그 버전 설정
+  tag-release:
+    name: 태그 설정 후 배포
     needs: [production-tag-type, rollback-tag-type]
     runs-on: ubuntu-latest
     steps:
@@ -64,23 +68,18 @@ jobs:
       - name: Extract Tag (Production)
         if: ${{ needs.production-tag-type.outputs.tag-type }} == 'PRODUCTION'
         run: |
-          echo "this is ${{ env.TAG_TYPE }}"
+          echo "this is ${{ needs.production-tag-type.outputs.tag-type }}"
           git fetch --all --tags
           echo "VERSION: $(git tag --list --sort=-v:refname | head -1 | sed 's/v//g')"
           echo "VERSION=`echo $(git tag --list --sort=-v:refname | head -1 | sed 's/v//g')`" >> $GITHUB_ENV
 
       - name: Extract Tag (Rollback)
-        if: ${{ needs.rollback-tag-type.outputs.tag-type }} == 'ROLLBACK'
+        if: ${{ needs.rollback-tag-type.outputs.tag-type }} == 'ROLLBACK' && startsWith(github.ref, 'v')
         run: |
-          echo "this is ${{ env.TAG_TYPE }}"
+          echo "this is ${{ needs.rollback-tag-type.outputs.tag-type }}"
           echo "VERSION: ${{ github.ref }}"
           echo "VERSION=${{ github.ref }}" >> $GITHUB_ENV
 
-  build:
-    name: 배포
-    needs: tagging
-    runs-on: ubuntu-latest
-    steps:
       - name: Checkout-new-tag
         uses: actions/checkout@v3
         with:
