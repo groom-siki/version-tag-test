@@ -39,7 +39,7 @@ jobs:
         id: tag-type-production
         run: |
           echo "TAG_TYPE=PRODUCTION" >> $GITHUB_OUTPUT
-          echo: ${{ steps.tag-type-production.outputs.TAG_TYPE }}
+          echo ${{ steps.tag-type-production.outputs.TAG_TYPE }}
     outputs:
       tag-type: ${{ steps.tag-type-production.outputs.TAG_TYPE }}
 
@@ -53,7 +53,7 @@ jobs:
         id: tag-type-rollback
         run: |
           echo "TAG_TYPE=ROLLBACK" >> $GITHUB_OUTPUT
-          echo: ${{ steps.tag-type-rollback.outputs.TAG_TYPE }}
+          echo ${{ steps.tag-type-rollback.outputs.TAG_TYPE }}
     outputs:
       tag-type: ${{ steps.tag-type-rollback.outputs.TAG_TYPE }}
 
