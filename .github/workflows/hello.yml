@@ -52,7 +52,7 @@ jobs:
 
   tag-release:
     name: 태그 설정 후 배포
-    needs: production
+    needs: [production, rollback]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
