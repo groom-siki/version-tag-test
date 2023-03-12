@@ -55,7 +55,7 @@ jobs:
         if: ${{ needs.production.outputs.tag-type == 'PRODUCTION' }}
         run: |
           git fetch --all --tags
-          echo "this is ${{ needs.production.outputs.tag-type }}
+          echo "this is ${{ needs.production.outputs.tag-type }}"
           echo "VERSION: $(git tag --list --sort=-v:refname | head -1)"
           echo "VERSION=`echo $(git tag --list --sort=-v:refname | head -1)`" >> $GITHUB_ENV
 
@@ -73,7 +73,7 @@ jobs:
 
       - name: hi
         run: |
-          echo "2"
+          echo "3"
           echo "hello world"
           echo ${{ env.VERSION }}
           echo ${{ github.event_name }}
