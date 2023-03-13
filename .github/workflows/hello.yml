@@ -8,16 +8,6 @@ on:
     workflows: [ "production-release" ]
     types:
       - completed
-  workflow_dispatch:
-    inputs:
-      tag-rollback:
-        description: 프로덕션 배치 롤백 배포일 경우 true로 설정
-        required: true
-        default: false
-        type: choice
-        options:
-          - false
-          - true
 
 jobs:
   verify:
@@ -45,7 +35,7 @@ jobs:
     name: 롤백 태그 확인
     needs: verify
     runs-on: ubuntu-latest
-    if: ${{ (github.event_name != 'workflow_run' && startsWith(github.ref, 'refs/tags/v') && inputs.tag-rollback == 'true') }}
+    if: ${{ (github.event_name != 'workflow_run' && startsWith(github.ref, 'refs/tags/v') }}
     steps:
       - name: 롤백 태그 결정
         run: exit 0
@@ -70,7 +60,7 @@ jobs:
           echo "VERSION=`echo $(git tag --list --sort=-v:refname | head -1)`" >> $GITHUB_ENV
 
       - name: Extract Tag (Rollback)
-        if: ${{ inputs.tag-rollback == 'true' && startsWith(github.ref, 'refs/tags/v') }}
+        if: ${{ startsWith(github.ref, 'refs/tags/v') }}
         run: |
           echo "this is ${{ github.ref }}"
           echo "VERSION: ${{ github.ref }}"
@@ -83,7 +73,7 @@ jobs:
 
       - name: hi
         run: |
-          echo "5"
+          echo "6"
           echo "hello world"
           echo ${{ env.VERSION }}
           echo ${{ github.event_name }}
