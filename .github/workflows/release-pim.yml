@@ -129,9 +129,9 @@ jobs:
           fi
           
           if [[ "${{ env.stage }}" == "production" ]]; then
-            echo "skip_check_branch=false" >> $GITHUB_OUTPUT
+            echo "skip_check_branch_up_to_date=false" >> $GITHUB_OUTPUT
           else
-            echo "skip_check_branch=true" >> $GITHUB_OUTPUT
+            echo "skip_check_branch_up_to_date=true" >> $GITHUB_OUTPUT
           fi
     outputs:
       stage: ${{ env.stage }}
@@ -149,7 +149,7 @@ jobs:
       build_script_path: ${{ env.build_script_path }}
       slack_notify_channel: ${{ steps.var.outputs.slack_notify_channel }}
       slack_thread_key: ${{ env.service_name }}-${{ env.stage }}-${{ github.run_id }}-${{ github.run_attempt }}
-      skip_check_branch: ${{ steps.var.outputs.skip_check_branch }}
+      skip_check_branch_up_to_date: ${{ steps.var.outputs.skip_check_branch_up_to_date }}
 
   build_api:
     name: '[API] API Build: ${{ needs.env.outputs.stage }} / ${{ needs.env.outputs.branch }}'
@@ -198,7 +198,7 @@ jobs:
           SSH_PRIVATE_KEY: ${{ secrets.PRIVATE_SSH_FOR_GITHUB_REPO }}
           RECORD_DEPLOYMENT_STEP_URL: ${{ needs.env.outputs.is_aws_production == 'true' && secrets.INHOUSE_RECORD_DEPLOYMENT_STEP_URL_PRODUCTION || secrets.INHOUSE_RECORD_DEPLOYMENT_STEP_URL_ALPHA }}
           RECORD_DEPLOYMENT_STEP_TOKEN: ${{ secrets.INHOUSE_RECORD_DEPLOYMENT_STEP_TOKEN }}
-          skip_check_branch_up_to_date: ${{ needs.env.outputs.skip_check_branch }}
+          skip_check_branch_up_to_date: ${{ needs.env.outputs.skip_check_branch_up_to_date }}
 
     outputs:
       git_ref: ${{ steps.build_api.outputs.git_ref }}
@@ -221,7 +221,7 @@ jobs:
       git_ref: ${{ needs.build_api.outputs.git_ref }}
       slack_notify_channel: ${{ needs.env.outputs.slack_notify_channel }}
       slack_thread_key: ${{ needs.env.outputs.slack_thread_key }}
-      skip_check_branch_up_to_date: ${{ needs.build_api.outputs.skip_check_branch }}
+      skip_check_branch_up_to_date: ${{ needs.env.outputs.skip_check_branch_up_to_date }}
     secrets:
       GITHUB_BOT_TOKEN: ${{ secrets.SRE_ACCOUNT_TOKEN }}
       RECORD_DEPLOYMENT_STEP_URL: ${{ needs.env.outputs.is_aws_production == 'true' && secrets.INHOUSE_RECORD_DEPLOYMENT_STEP_URL_PRODUCTION || secrets.INHOUSE_RECORD_DEPLOYMENT_STEP_URL_ALPHA }}
