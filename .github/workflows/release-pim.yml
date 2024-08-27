@@ -221,7 +221,6 @@ jobs:
       git_ref: ${{ needs.build_api.outputs.git_ref }}
       slack_notify_channel: ${{ needs.env.outputs.slack_notify_channel }}
       slack_thread_key: ${{ needs.env.outputs.slack_thread_key }}
-      skip_check_branch_up_to_date: ${{ needs.env.outputs.skip_check_branch_up_to_date }}
     secrets:
       GITHUB_BOT_TOKEN: ${{ secrets.SRE_ACCOUNT_TOKEN }}
       RECORD_DEPLOYMENT_STEP_URL: ${{ needs.env.outputs.is_aws_production == 'true' && secrets.INHOUSE_RECORD_DEPLOYMENT_STEP_URL_PRODUCTION || secrets.INHOUSE_RECORD_DEPLOYMENT_STEP_URL_ALPHA }}
