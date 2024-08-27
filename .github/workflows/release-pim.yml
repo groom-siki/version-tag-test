@@ -1,0 +1,228 @@
+name: '# Release Pim API'
+
+on:
+  workflow_dispatch:
+    inputs:
+      user_name:
+        description: 배포한 사용자 (선택)
+        required: false
+        type: string
+      stage_choice:
+        description: 배포할 환경
+        type: choice
+        required: false
+        options:
+          - ''
+          - 'alpha'
+          - 'production'
+          - 'beta'
+          - 'beta-rc'
+      stage:
+        description: 배포할 환경 (수동 입력)
+        type: string
+        required: false
+      release_message:
+        description: 릴리즈 메시지
+        type: string
+        required: false
+      deployment_uuid:
+        description: 배포 UUID (인하우스시스템용)
+        type: string
+        required: false
+  workflow_call:
+    inputs:
+      user_name:
+        description: 배포한 사용자
+        required: false
+        type: string
+      stage:
+        description: 배포할 환경
+        required: false
+        type: string
+      release_message:
+        description: 릴리즈 메시지
+        required: false
+        type: string
+      deployment_uuid:
+        description: 배포 UUID (인하우스시스템용)
+        required: false
+        type: string
+
+run-name: '[${{ inputs.stage_choice || inputs.stage }}] Deploy Pim API: ${{ inputs.branch || github.ref_name }}'
+
+jobs:
+  preflight:
+    name: '배포 전 검증'
+    runs-on: kakaostyle-gha-runner
+    env:
+      stage: ${{ inputs.stage_choice || inputs.stage }}
+    steps:
+      - name: Check Branch For Production
+        run: |
+          if ["${{ env.stage }}" == ""]; then
+            echo "Stage가 올바르지 않습니다"
+            exit 1
+          fi
+
+          if [ "${{ github.ref }}" != "refs/heads/production" ]; then
+            if ["${{ env.stage }}" == "production"]; then
+              echo "운영 환경 배포는 production 브랜치에서만 배포가 가능합니다."
+              exit 1
+            fi
+          fi
+
+  env:
+    name: '배포 설정'
+    needs: [ preflight ]
+    runs-on: kakaostyle-gha-runner
+    env:
+      stage: ${{ inputs.stage_choice || inputs.stage }}
+      service_name: pim
+      service_port: 9164
+      working_directory: .
+      production_branch: production
+      build_script_path: ./tools/deploy/deploy_pim_api.sh
+    steps:
+      - name: Checkout Code
+        if: ${{ env.stage }} == 'production'
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 10
+
+      - name: Setup Variables
+        id: var
+        run: |
+          IS_DEV=false
+          if [[ "${{ env.stage }}" == dev-* ]]; then
+            IS_DEV=true
+          fi
+          echo "is_dev=$IS_DEV" >> $GITHUB_OUTPUT
+
+          IS_AWS_PRODUCTION=false
+          if [[ "${{ env.stage }}" == "production" || "${{ env.stage }}" == beta* ]]; then
+            IS_AWS_PRODUCTION=true
+          fi
+          echo "is_aws_production=$IS_AWS_PRODUCTION" >> $GITHUB_OUTPUT
+
+          IS_BETA_DEV=true
+          if [[ "${{ env.stage }}" == "production" || "${{ env.stage }}" == "alpha" ]]; then
+            IS_BETA_DEV=false
+          fi
+          echo "is_beta_dev=$IS_BETA_DEV" >> $GITHUB_OUTPUT
+
+          if [[ $IS_DEV == "true" ]]; then
+            echo "repository_name=dev-service-images" >> $GITHUB_OUTPUT
+          elif [[ $IS_BETA_DEV == "false" ]]; then
+            echo "repository_name=service-${{ env.service_name }}-eks" >> $GITHUB_OUTPUT
+          else
+            echo "repository_name=${{ env.stage }}-service-${{ env.service_name }}" >> $GITHUB_OUTPUT
+          fi
+
+          if [[ "${{ env.stage }}" == "production" ]]; then
+            echo "slack_notify_channel=dev_deploy_zigzag" >> $GITHUB_OUTPUT
+          elif [[ "${{ env.stage }}" == beta* ]]; then
+            echo "slack_notify_channel=dev_deploy_zigzag_beta" >> $GITHUB_OUTPUT
+          elif [[ "${{ env.stage }}" == "alpha" ]]; then
+            echo "slack_notify_channel=알파_dev_deploy_zigzag" >> $GITHUB_OUTPUT
+          else
+            echo "slack_notify_channel=알파_dev_deploy_zigzag_dev" >> $GITHUB_OUTPUT
+          fi
+          
+          if [[ "${{ env.stage }}" == "production" ]]; then
+            echo "skip_check_branch_up_to_date=false" >> $GITHUB_OUTPUT
+          else
+            echo "skip_check_branch_up_to_date=true" >> $GITHUB_OUTPUT
+          fi
+    outputs:
+      stage: ${{ env.stage }}
+      profile: ${{ steps.var.outputs.profile }}
+      is_dev: ${{ steps.var.outputs.is_dev }}
+      is_aws_production: ${{ steps.var.outputs.is_aws_production }}
+      is_beta_dev: ${{ steps.var.outputs.is_beta_dev }}
+      working_directory: ${{ env.working_directory }}
+      production_branch: ${{ env.production_branch }}
+      user_name: ${{ inputs.user_name || github.actor }}
+      branch: ${{ inputs.branch || github.ref_name }}
+      service_name: ${{ env.service_name }}
+      service_port: ${{ env.service_port }}
+      repository_name: ${{ steps.var.outputs.repository_name }}
+      build_script_path: ${{ env.build_script_path }}
+      slack_notify_channel: ${{ steps.var.outputs.slack_notify_channel }}
+      slack_thread_key: ${{ env.service_name }}-${{ env.stage }}-${{ github.run_id }}-${{ github.run_attempt }}
+      skip_check_branch_up_to_date: ${{ steps.var.outputs.skip_check_branch_up_to_date }}
+
+  build_api:
+    name: '[API] API Build: ${{ needs.env.outputs.stage }} / ${{ needs.env.outputs.branch }}'
+    needs: [ env ]
+    runs-on: kakaostyle-gha-runner
+    steps:
+      - name: Show computed variables
+        env:
+          OUTPUTS: ${{ toJSON(needs.env.outputs) }}
+        run: echo $OUTPUTS
+
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Cache Gradle
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+
+      - name: Configure Script
+        run: |
+          chmod +x ./tools/deploy/deploy_pim_api.sh
+
+      - name: Build Image (API)
+        id: build_api
+        uses: croquiscom/github-actions/build-server-service@main
+        with:
+          deployment_uuid: ${{ inputs.deployment_uuid }}
+          release_message: ${{ inputs.release_message }}
+          working_directory: ${{ needs.env.outputs.working_directory }}
+          production_branch: ${{ needs.env.outputs.production_branch }}
+          user_name: ${{ needs.env.outputs.user_name }}
+          stage: ${{ needs.env.outputs.stage }}
+          branch: ${{ needs.env.outputs.branch }}
+          service_name: ${{ needs.env.outputs.service_name }}
+          service_port: ${{ needs.env.outputs.service_port }}
+          repository_name: ${{ needs.env.outputs.repository_name }}
+          build_script_path: ${{ needs.env.outputs.build_script_path }}
+          slack_notify_channel: ${{ needs.env.outputs.slack_notify_channel }}
+          slack_thread_key: ${{ needs.env.outputs.slack_thread_key }}
+          AWS_ACCESS_KEY: ${{ needs.env.outputs.is_aws_production == 'true' && secrets.AWS_ZIGZAG_ECR_ACCESS_KEY || secrets.AWS_ZIGZAG_ALPHA_ECR_ACCESS_KEY }}
+          AWS_SECRET_KEY: ${{ needs.env.outputs.is_aws_production == 'true' && secrets.AWS_ZIGZAG_ECR_SECRET_KEY || secrets.AWS_ZIGZAG_ALPHA_ECR_SECRET_KEY }}
+          SSH_PRIVATE_KEY: ${{ secrets.PRIVATE_SSH_FOR_GITHUB_REPO }}
+          RECORD_DEPLOYMENT_STEP_URL: ${{ needs.env.outputs.is_aws_production == 'true' && secrets.INHOUSE_RECORD_DEPLOYMENT_STEP_URL_PRODUCTION || secrets.INHOUSE_RECORD_DEPLOYMENT_STEP_URL_ALPHA }}
+          RECORD_DEPLOYMENT_STEP_TOKEN: ${{ secrets.INHOUSE_RECORD_DEPLOYMENT_STEP_TOKEN }}
+          skip_check_branch_up_to_date: ${{ needs.env.outputs.skip_check_branch_up_to_date }}
+
+    outputs:
+      git_ref: ${{ steps.build_api.outputs.git_ref }}
+      image: ${{ steps.build_api.outputs.image }}
+      image_tag: ${{ steps.build_api.outputs.image_tag }}
+      release_message: ${{ steps.build_api.outputs.release_message }}
+
+  deploy_api:
+    name: '[API] API Deploy To EKS: ${{ needs.env.outputs.stage }} / ${{ needs.env.outputs.branch }}'
+    uses: croquiscom/github-actions/.github/workflows/deploy-eks.yml@main
+    needs: [ env, build_api ]
+    if: needs.env.outputs.is_dev == 'false'
+    with:
+      deployment_uuid: ${{ inputs.deployment_uuid }}
+      release_message: ${{ needs.build_api.outputs.release_message }}
+      image_tag: ${{ needs.build_api.outputs.image_tag }}
+      stage: ${{ needs.env.outputs.stage }}
+      service_name: ${{ needs.env.outputs.service_name }}
+      branch: ${{ needs.env.outputs.branch }}
+      git_ref: ${{ needs.build_api.outputs.git_ref }}
+      slack_notify_channel: ${{ needs.env.outputs.slack_notify_channel }}
+      slack_thread_key: ${{ needs.env.outputs.slack_thread_key }}
+      skip_check_branch_up_to_date: ${{ needs.env.outputs.skip_check_branch_up_to_date }}
+    secrets:
+      GITHUB_BOT_TOKEN: ${{ secrets.SRE_ACCOUNT_TOKEN }}
+      RECORD_DEPLOYMENT_STEP_URL: ${{ needs.env.outputs.is_aws_production == 'true' && secrets.INHOUSE_RECORD_DEPLOYMENT_STEP_URL_PRODUCTION || secrets.INHOUSE_RECORD_DEPLOYMENT_STEP_URL_ALPHA }}
+      RECORD_DEPLOYMENT_STEP_TOKEN: ${{ secrets.INHOUSE_RECORD_DEPLOYMENT_STEP_TOKEN }}
